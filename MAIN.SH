@@ -1126,8 +1126,8 @@ cat <<- EOS > index.html
 $DOTMAP
  }
 </script>
-<!-- script src="http://47news.jp/cgi-bin/ra/viz.js"></script -->
-<script src="viz.js"></script>
+<script src="http://47news.jp/cgi-bin/ra/viz.js"></script>
+<!-- script src="viz.js"></script -->
 <script>
   function inspect(s) {
     return "<pre>" + s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\\\"/g, "&quot;") + "</pre>"

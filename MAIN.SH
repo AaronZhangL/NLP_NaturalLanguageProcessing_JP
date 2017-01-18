@@ -590,6 +590,167 @@
 # $ make install ;
 #
 ######################################################
+
+
+######################################################
+#
+# <>コンフィグレーション
+#
+  cd `dirname $0`  ;
+  #awk='/bin/mawk' ;
+  awk="`which gawk`" ;
+  #MECAB="/usr/local/bin/mecab" ;
+  MECAB="`which mecab`" ;
+  #日本語処理のために環境変数LANGを設定
+  export LANG=ja_JP.UTF-8
+  export LC_ALL=C ;
+  #ログファイル
+  LOG="$TMP/LOG.TXT";
+  #ライブラリのディレクトリ
+  LIBDIR="lib";
+  #TMPディレクトリ
+  TMP="TMP/TMP_`date +%F_%H-%M-%S_%N`";
+  mkdir -p "$TMP";
+  chmod -R 777 "$TMP"; 
+  # 本文の最大取得文字数
+  maxLength=3000
+  #出力される重要語の数
+  TERMEX_ITEM_COUNT=10 ;
+  # 重要語抽出の設定
+      ####################
+      #calc_imp_by_HASH_Freq;
+      ####################
+      #LR=0;
+      #frq=1;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）<>
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る
+      # FRQ
+          # 無効 0 
+          # FRQ  1<>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH_TF;
+      ####################
+      #LR=0;
+      #frq=2;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）<>
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る
+## FRQ
+          # 無効 0
+          # FRQ  1
+          # TF   2 <>
+      ####################
+      #calc_imp_by_HASH; (延べ数)
+      ####################
+      LR=1;   #default
+      frq=1;  #default
+      #
+      # 延べ数をとるのか異なり数のどちらを選ぶのか。
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る <>
+          #    2 → 異なり数を取る <>
+          #    3 → パープレキシティを取る
+      # FRQ 
+          # 無効 0
+          # FRQ  1 <>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH;(異なり数)
+      ####################
+      #LR=2;
+      #frq=1;
+      #
+      # 延べ数をとるのか異なり数のどちらを選ぶのか。
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る <>
+          #    2 → 異なり数を取る <>
+          #    3 → パープレキシティを取る
+      # FRQ 
+          # 無効 0
+          # FRQ  1 <>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH_PP;
+      ####################
+      #LR=3;
+      #frq=2;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る <>
+      # FRQ
+          # 無効 0
+          # FRQ  1
+          # TF   2 <> 
+  
+
+  #jumanディクショナリ
+  JUMANDIC="extractopinion-1.2/jumandic";
+  # 形態素解析のパラメータなしでも 1  →  強制取込 
+  reset_get_word=0;
+  ## 形態素解析のデータを 1 → 取込済 0 → 未取込
+  get_word_done=0;
+  # 専門用語全体の重要度
+  MAX_CMP_SIZE=1024; # 半角空白区切りの単名詞リストの最大長 
+  average_rate=1; # 重要度計算での連接情報と文中の用語頻度のバランス
+  #絞り込みをかけた重要語候補を出力するTMPファイル
+  CmpNounListTmpFile="$TMP/cmp_noun_list_tmp.txt";
+  #重要語、頻度を出力するファイル
+  CmpNounListFile="$TMP/cmp_noun_list.txt";
+  #重要語、頻度を出力するファイル
+  NcontListFile="$TMP/ncont_list.txt";
+  #複合名詞を半角スペース区切りで分割するTMPファイル
+  #OrgNounListFile="$TMP/org_noun_list.txt";
+  nounFile="$TMP/noun.txt";
+  #重要度計算対象外にする語を指定
+  IgnoreWordsFile="$TMP/ignorewords.txt";
+  touch "$IgnoreWordsFile"; ## 現状スクリプト内では空のまま
+  #重要度計算対象外にする語を検索用に加工したもの
+  IgnoreWordsFileTmp="ignorewords.tmp";
+  # 出力モードを指定
+  # 1 → 専門用語＋重要度、2 → 専門用語のみ
+  # 3 → カンマ区切り
+  ##my $output_mode = 1;
+  #出力モードをパラメータで制御できるようにする。
+  #output_mode=1;
+  #要約時の圧縮率 POSTパラメータ&permax=50というような指定で要約率を指定することができる。
+  perMax=50 ;
+
+  #HTMLで出力するかどうかの判定
+  #printHtml="no" ;
+
+  #スポーツ用語を取得するかどうかの判定
+  sportsFlg="no" ;
+  #スポーツ人名学習するかどうかの判定
+  studyName="yes" ;
+  #意見評価ディレクトリ
+  exopdir="extractopinion-1.2";
+  #意見評価 中間ファイルを一時的に保存するディレクトリ
+  export TMPDIR="$TMP"
+  #意見評価 モデルファイルのプレフィックス
+  export model=$exopdir/modeldata/model/model
+  #意見評価 辞書のディレクトリ
+  export dictionary=$exopdir/dic
+  #意見評価 環境変数設定
+  export EXOPLIB=$exopdir/lib
+  export EXOPDIC=$exopdir/dic
+  export EXOPXPR=$exopdir/xpr
+  export EXOPSRC=$exopdir/src
+  export EXOPPOL=$exopdir/pol
+  export EXOPTYP=$exopdir/typ
+
 #
 #<> func_pol_extract
 # pol/extract.shを関数化
@@ -3651,45 +3812,21 @@ function func_MECAB(){
 }
 #
 #########################################################
-# パラメータ処理
+# パース処理
 #########################################################
 #
-# シェルスクリプト版
-# <> sh_func_isAscii
-# 日本語と英語の判定（シェル）
-# ASCIIだったらexitする 
-# true: ascii
-# false: exit 
-#
-function sh_func_isAscii(){
-  if echo "$DESCRIPTION" | cut -c1-12 | file - | LANG=C grep -i ASCII > /dev/null ; then
-    # NO ASCII" ;
-    exit ;
-  else
-    :
-    # ASCII" ;
-  fi
-}
-#
-# Awk版
-# <> func_isAscii
-# QUERY_STRING処理 日本語と英語の判定
-# ASCIIだったらexitする 
+# Awk版 # QUERY_STRING処理 日本語と英語の判定 # ASCIIだったらexitする 
 # 入力: $DESCRIPTION ( 変数 )
-#
 function func_isAscii(){
   if echo "$DESCRIPTION" | cut -c1-12 | file - | LANG=C grep -i ASCII > /dev/null ; then
     exit ;
+  else
+    if [ $DEBUG == "TRUE" ]; then echo "isAscii : OK nonAscii" ; fi
   fi
 }
 #
-# <> func_getArticleType
-# POSTされた記事の種類を取得
-# デフォルト値 ArticleType="editorial"
-# 入力１: $URLGETOPT ( 変数 )
-# 入力２: $ArticleType ( 変数 )
-# 出力: $ArticleType ( 変数 )
-# 
+# awk/bash版 POSTされた記事の種類を取得 # デフォルト値 ArticleType="editorial"
+# 入力１: $URLGETOPT ( 変数 ) # 入力２: $ArticleType ( 変数 ) # 出力: $ArticleType ( 変数 )
 function func_getArticleType() {
   ArticleType=$(echo "$URLGETOPT" | tr -d '\n' | $awk '{
     IGNORECASE=1 ;
@@ -3702,15 +3839,11 @@ function func_getArticleType() {
       print $0 ;
     }
   }');
+  if [ $DEBUG == "TRUE" ]; then echo "ArticleType : $ArticleType" ; fi
 }
 #
-# <> func_getMaxlength
-# POSTされた要約圧縮率を取得
-# デフォルト値 maxlength=なし
-# 入力１: $URLGETOPT ( 変数 )
-# 入力２: $maxlength ( 変数 )
-# 出力: $summaxlength ( 変数 )
-# 
+# awk/bash版 POSTされた要約圧縮率を取得 # デフォルト値 maxlength=なし
+# 入力１: $URLGETOPT ( 変数 ) # 入力２: $maxlength ( 変数 ) # 出力: $summaxlength ( 変数 )
 function func_getSummaxlength() {
   summaxlength=$(echo "$URLGETOPT" | tr -d '\n' | $awk '{
     IGNORECASE=1 ;
@@ -3730,15 +3863,11 @@ function func_getSummaxlength() {
       print "'$summaxlength'" ;
     }
   }');
+  if [ $DEBUG == "TRUE" ]; then echo "summaxlength : $summaxlength" ; fi
 }
 #
-# <> func_getPermax
-# POSTされた要約圧縮率を取得
-# デフォルト値 perMax=50
-# 入力１: $URLGETOPT ( 変数 )
-# 入力２: $perMax ( 変数 )
-# 出力: $perMax ( 変数 )
-# 
+# awk/bash版 <> func_getPermax # POSTされた要約圧縮率を取得 # デフォルト値 perMax=50
+# 入力１: $URLGETOPT ( 変数 ) # 入力２: $perMax ( 変数 ) # 出力: $perMax ( 変数 )
 function func_getPermax() {
   perMax=$(echo "$URLGETOPT" | tr -d '\n' | $awk '{
     IGNORECASE=1 ;
@@ -3758,14 +3887,19 @@ function func_getPermax() {
       print "'$perMax'" ;
     }
   }');
+  if [ $DEBUG == "TRUE" ]; then echo "perMax : $perMax" ; fi
 }
 #
-# シェルスクリプト版
-# <> sh_func_getDescription
-# POSTされた記事本文を取得（シェル）
-# 本文の最大取得文字数 maxLength=1000
-# 
-function sh_func_getDescription() {
+# awk/bash版 # パラメータをセット
+function parse.setParam(){
+  func_getPermax ;                # 要約圧縮率取得
+  func_getSummaxlength ;          # 要約圧縮率取得
+  func_getArticleType             # 記事タイプ取得
+  func_isAscii ;                  #日本語と英語の判定 
+}
+#
+# bash版 # POSTされた記事本文を取得（シェル） # 本文の最大取得文字数 maxLength=1000
+function parse.getDescription.sh() {
   DESCRIPTION=$(echo "$URLGETOPT" | \
     tr -d '\n' | \
       sed -e "s/$/\n/g" | \
@@ -3780,17 +3914,12 @@ function sh_func_getDescription() {
                 -e "s/<[^>]*>//g";
         fi
     done);
+  if [ $DEBUG == "TRUE" ]; then echo "DESCRIPTION : $DESCRIPTION" ; fi
 }
 #
-# Awk版
-# <> func_getDescription
-# POSTされた記事本文を取得
-# 本文の最大取得文字数 maxLength=3000
-# 入力１: $URLGETOPT ( 変数 )
-# 入力２: $maxLength ( 変数 )
-# 出力: $DESCRIPTION ( 変数 )
-# 
-function func_getDescription() {
+# Awk版 # POSTされた記事本文を取得 # 本文の最大取得文字数 maxLength=3000
+# 入力１: $URLGETOPT ( 変数 ) # 入力２: $maxLength ( 変数 ) # 出力: $DESCRIPTION ( 変数 )
+function parse.getDescription.awk() {
   DESCRIPTION=$(echo "$URLGETOPT" | tr -d '\n' | cut -c1-"$maxLength" | $awk '{
     IGNORECASE=1 ;
     if (index($0, "body=") > 0 ){
@@ -3802,14 +3931,11 @@ function func_getDescription() {
       print $0 ;
     }
   }') ;
+  if [ $DEBUG == "TRUE" ]; then echo "DESCRIPTION : $DESCRIPTION" ; fi
 }
 #
-# シェルスクリプト版
-# <> sh_func_getTitle
-# POSTされた記事のタイトル（シェル）
-# $TITLE ;
-#
-function sh_func_getTitle() {
+# bash版 # POSTされた記事のタイトル（シェル） # $TITLE ;
+function parse.getTitle.sh() {
   TITLE=$(echo ${URLGETOPT} | \
     while read line ;do
       if echo "$line" | LANG=C grep -i "title=" > /dev/null; then
@@ -3821,17 +3947,12 @@ function sh_func_getTitle() {
               -e "s/^[●○■□△▽]//g"; 
       fi
     done);
+  if [ $DEBUG == "TRUE" ]; then echo "TITLE : $TITLE" ; fi
 }
 #
-# Awk版
-# <> func_getTitle
-# POSTされた記事のタイトルを取得
-# タイトルの最大取得文字数 maxLength=3000
-# 入力１: $URLGETOPT ( 変数 )
-# 入力２: $maxLength ( 変数 )
-# 出力: $TITLE ( 変数 )
-#
-function func_getTitle() {
+# Awk版 # POSTされた記事のタイトルを取得 # タイトルの最大取得文字数 maxLength=3000
+# 入力１: $URLGETOPT ( 変数 ) # 入力２: $maxLength ( 変数 ) # 出力: $TITLE ( 変数 )
+function parse.getTitle.awk() {
   TITLE=$(echo "$URLGETOPT" | tr -d '\n' | cut -c1-"$maxLength" | $awk '{
     IGNORECASE=1 ;
     if (index($0, "title=") > 0 ){
@@ -3843,13 +3964,10 @@ function func_getTitle() {
       print $0 ;
     }
   }') ;
+  if [ $DEBUG == "TRUE" ]; then echo "TITLE : $TITLE" ; fi
 }
 #
-#<>urlGetOpt 
-# POSTパラメータを分解
-# 入力: 標準入力
-# 出力: 標準出力
-#
+#bash/awk版 # POSTパラメータを分解 # 入力: 標準入力 # 出力: 標準出力
 function urlGetOpt() {
   VarPrefix=
   LongFormat=no
@@ -3922,21 +4040,9 @@ function urlGetOpt() {
 	      exit (exitcode)
 	  }'
 }
-#
-# シェルスクリプト版
-# <> sh_func_readQuery_string
-# QUERY_STRINへ値を読み込む（シェル）
-# $QUERY_STRING ;
-#
-function sh_func_readQuery_string(){
- read QUERY_STRING;
-}
-# シェルスクリプト版
-# <> sh_func_getOPT
-# パラメータ解析（シェル）
-# $URLGETOPT ;
-#
-function sh_func_getOPT(){
+# bash版 # # パラメータ解析（シェル） # $URLGETOPT ;
+function parse.getOPT.sh(){
+  read QUERY_STRING;
   URLGETOPT=$(echo ${QUERY_STRING} | \
     sed -e "s/&nbsp;//g" \
         -e "s/&amp;//g" \
@@ -3957,14 +4063,10 @@ function sh_func_getOPT(){
   if [ -z "$URLGETOPT" ]; then 
     exit ; 
   fi 
+  if [ $DEBUG == "TRUE" ]; then echo "URLGETOPT : $URLGETOPT" ; fi
 }
-# AWK版
-# <> func_getOPT
-# パラメータ解析
-# 入力: QUERY_STRING ( 環境変数 )
-# 出力: $URLGETOPT ( 変数 )
-#
-function func_getOPT(){
+# AWK版 # パラメータ解析 # 入力: QUERY_STRING ( 環境変数 ) # 出力: $URLGETOPT ( 変数 )
+function parse.getOPT.awk(){
   read QUERY_STRING ;
   URLGETOPT=$( echo "$QUERY_STRING" | $awk '{
       IGNORECASE=1 ;
@@ -3983,187 +4085,31 @@ function func_getOPT(){
       print $0 ;
   }' | nkf -wLu | urlGetOpt ) ;
   if [ -z "$URLGETOPT" ]; then exit ; fi 
+  if [ $DEBUG == "TRUE" ]; then echo "URLGETOPT : $URLGETOPT" ; fi
 }
 #
-######################################################
-#
-# <>コンフィグレーション
-#
-  cd `dirname $0`  ;
-  #awk='/bin/mawk' ;
-  awk="`which gawk`" ;
-  #MECAB="/usr/local/bin/mecab" ;
-  MECAB="`which mecab`" ;
-  #日本語処理のために環境変数LANGを設定
-  export LANG=ja_JP.UTF-8
-  export LC_ALL=C ;
-  #ログファイル
-  LOG="$TMP/LOG.TXT";
-  #ライブラリのディレクトリ
-  LIBDIR="lib";
-  #TMPディレクトリ
-  TMP="TMP/TMP_`date +%F_%H-%M-%S_%N`";
-  mkdir -p "$TMP";
-  chmod -R 777 "$TMP"; 
-  # 本文の最大取得文字数
-  maxLength=3000
-  #出力される重要語の数
-  TERMEX_ITEM_COUNT=10 ;
-  # 重要語抽出の設定
-      ####################
-      #calc_imp_by_HASH_Freq;
-      ####################
-      #LR=0;
-      #frq=1;
-      #
-      # LR(連接情報)の設定  
-          #    0 → LRなし（隣接情報を使わない）<>
-          #    1 → 延べ数を取る
-          #    2 → 異なり数を取る
-          #    3 → パープレキシティを取る
-      # FRQ
-          # 無効 0 
-          # FRQ  1<>
-          # TF   2
-      ####################
-      #calc_imp_by_HASH_TF;
-      ####################
-      #LR=0;
-      #frq=2;
-      #
-      # LR(連接情報)の設定  
-          #    0 → LRなし（隣接情報を使わない）<>
-          #    1 → 延べ数を取る
-          #    2 → 異なり数を取る
-          #    3 → パープレキシティを取る
-## FRQ
-          # 無効 0
-          # FRQ  1
-          # TF   2 <>
-      ####################
-      #calc_imp_by_HASH; (延べ数)
-      ####################
-      LR=1;   #default
-      frq=1;  #default
-      #
-      # 延べ数をとるのか異なり数のどちらを選ぶのか。
-      # LR(連接情報)の設定  
-          #    0 → LRなし（隣接情報を使わない）
-          #    1 → 延べ数を取る <>
-          #    2 → 異なり数を取る <>
-          #    3 → パープレキシティを取る
-      # FRQ 
-          # 無効 0
-          # FRQ  1 <>
-          # TF   2
-      ####################
-      #calc_imp_by_HASH;(異なり数)
-      ####################
-      #LR=2;
-      #frq=1;
-      #
-      # 延べ数をとるのか異なり数のどちらを選ぶのか。
-      # LR(連接情報)の設定  
-          #    0 → LRなし（隣接情報を使わない）
-          #    1 → 延べ数を取る <>
-          #    2 → 異なり数を取る <>
-          #    3 → パープレキシティを取る
-      # FRQ 
-          # 無効 0
-          # FRQ  1 <>
-          # TF   2
-      ####################
-      #calc_imp_by_HASH_PP;
-      ####################
-      #LR=3;
-      #frq=2;
-      #
-      # LR(連接情報)の設定  
-          #    0 → LRなし（隣接情報を使わない）
-          #    1 → 延べ数を取る
-          #    2 → 異なり数を取る
-          #    3 → パープレキシティを取る <>
-      # FRQ
-          # 無効 0
-          # FRQ  1
-          # TF   2 <> 
-  
-
-  #jumanディクショナリ
-  JUMANDIC="extractopinion-1.2/jumandic";
-  # 形態素解析のパラメータなしでも 1  →  強制取込 
-  reset_get_word=0;
-  ## 形態素解析のデータを 1 → 取込済 0 → 未取込
-  get_word_done=0;
-  # 専門用語全体の重要度
-  MAX_CMP_SIZE=1024; # 半角空白区切りの単名詞リストの最大長 
-  average_rate=1; # 重要度計算での連接情報と文中の用語頻度のバランス
-  #絞り込みをかけた重要語候補を出力するTMPファイル
-  CmpNounListTmpFile="$TMP/cmp_noun_list_tmp.txt";
-  #重要語、頻度を出力するファイル
-  CmpNounListFile="$TMP/cmp_noun_list.txt";
-  #重要語、頻度を出力するファイル
-  NcontListFile="$TMP/ncont_list.txt";
-  #複合名詞を半角スペース区切りで分割するTMPファイル
-  #OrgNounListFile="$TMP/org_noun_list.txt";
-  nounFile="$TMP/noun.txt";
-  #重要度計算対象外にする語を指定
-  IgnoreWordsFile="$TMP/ignorewords.txt";
-  touch "$IgnoreWordsFile"; ## 現状スクリプト内では空のまま
-  #重要度計算対象外にする語を検索用に加工したもの
-  IgnoreWordsFileTmp="ignorewords.tmp";
-  # 出力モードを指定
-  # 1 → 専門用語＋重要度、2 → 専門用語のみ
-  # 3 → カンマ区切り
-  ##my $output_mode = 1;
-  #出力モードをパラメータで制御できるようにする。
-  #output_mode=1;
-  #要約時の圧縮率 POSTパラメータ&permax=50というような指定で要約率を指定することができる。
-  perMax=50 ;
-
-  #HTMLで出力するかどうかの判定
-  #printHtml="no" ;
-
-  #スポーツ用語を取得するかどうかの判定
-  sportsFlg="no" ;
-  #スポーツ人名学習するかどうかの判定
-  studyName="yes" ;
-  #意見評価ディレクトリ
-  exopdir="extractopinion-1.2";
-  #意見評価 中間ファイルを一時的に保存するディレクトリ
-  export TMPDIR="$TMP"
-  #意見評価 モデルファイルのプレフィックス
-  export model=$exopdir/modeldata/model/model
-  #意見評価 辞書のディレクトリ
-  export dictionary=$exopdir/dic
-  #意見評価 環境変数設定
-  export EXOPLIB=$exopdir/lib
-  export EXOPDIC=$exopdir/dic
-  export EXOPXPR=$exopdir/xpr
-  export EXOPSRC=$exopdir/src
-  export EXOPPOL=$exopdir/pol
-  export EXOPTYP=$exopdir/typ
+#パラメータ処理
+function parse(){
+  parse.getOPT.awk ;
+#  parse.getOPT.sh ;
+  parse.getTitle.awk ;
+#  parse.getTitle.sh ;
+  parse.getDescription.awk ;
+#  parse.getDescription.sh ;
+  parse.setParam ;
+}
 #
 #####################
 #<>実行メインルーチン
 #####################
 #
+#デバッグモード
+DEBUG="TRUE" ;
+#
 function Main(){
-    #
-    #パラメータ処理
-    #
-    func_getOPT ;                   # getOpt パラメータ解析
-    #sh_func_readQuery_string ;     # 1.QUERY_STRINGへ値を読み込む
-    #sh_func_getOPT ;               # 2.getOpt パラメータ解析
-    func_getTitle ;                 # タイトル取得
-    #sh_func_getTitle ;             # 3.タイトル取得
-    func_getDescription ;           # 本文取得
-    #sh_func_getDescription ;       # 4.本文取得
-    func_getPermax ;                # 要約圧縮率取得
-    func_getSummaxlength ;          # 要約圧縮率取得
-    func_getArticleType             # 記事タイプ取得
-    func_isAscii ;                  #日本語と英語の判定 
-    #sh_func_isAscii ;              # 5.日本語と英語の判定 
+  #パラメータ処理
+  parse ;
+exit ;
     #
     #形態素解析(見出し)
     #

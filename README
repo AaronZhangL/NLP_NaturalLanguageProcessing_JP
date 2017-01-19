@@ -1,10 +1,7 @@
-
-【人工知能】自然言語処理による重要語・人名・地名・組織名・機械要約と再帰的ニューラルネットワークの構築
-
-#ani
-######################################################
 #
-#自然言語処理解析システム
+#########################################################
+# 自然言語処理解析システム
+#########################################################
 #
 #   "Author"  suzuki.iichiro@kyodonews.jp
 #   "perlMan" horiuchi.kotaro.ani
@@ -336,3 +333,262 @@
 # 実行結果
 # 1. コンソールに出力されます
 # 2. index.htmlが生成されてオントロジーレイアウトが表現されます。
+#
+###############################################################################
+# 実行に必要なライブラリなど
+# libc/libglibのインストール
+#
+# #linux
+# yum install libc.so.6 ;
+# yum install libglib-2.0.so.0
+#
+# #mac 
+# sudo port install glib2
+#
+########
+# saryのインストール
+#
+# #linux
+# rpm -ihv libsary10-1.2.0-4mdk.i586.rpm  
+# rpm -ihv sary-1.2.0-4mdk.i586.rpm
+#
+# $ ln -s /usr/local/bin/sary /usr/bin/sary ;
+#
+########
+# gtk2/pkgconfigのインストール
+#
+# sudo port install gtk2 ;
+# sudo port install pkgconfig ;
+#
+#
+########
+# gcc/g++ installのインストール
+#
+# yum install gcc
+# yum install gcc-c++
+#
+########
+# mecab/mecab dic のインストール
+#
+# mecabのインストール
+# wget http://code.google.com/p/mecab/downloads/detail?name=mecab-0.996.tar.gz
+# tar -zxvf mecab-0.996.tar.gz
+# cd mecab-0.996
+# ./configure 
+# make
+# make check 
+# make install 
+# ln -s /usr/local/bin/mecab /usr/bin/mecab ;
+#
+# 形態素解析 mecab dicのインストール
+# mecab-ipadicのインストール
+# wget https://mecab.googlecode.com/files/mecab-ipadic-2.7.0-20070801.tar.gz
+# tar -zxvf mecab-ipadic-2.7.0-20070801.tar.gz
+# cd mecab-ipadic-2.7.0-20070801
+# ./configure 
+# make 
+# make check 
+# make install 
+#
+########
+# darts のインストール
+#
+# tar xzvf darts-0.3.tar.gz
+# cd darts-0.3
+# make clean 
+# ./configure
+# make clean ;
+# make
+# make check
+# make install
+# 
+#
+########
+# TinySVMのインストール
+#
+# # sudo port install tinysvm
+# #でもよい。
+# tar xzvf TinySVM-0.09.tar.gz
+# cd TinySVM-0.09
+# make clean 
+# ./configure
+# make clean ;
+# make
+# make check
+# make install
+# 
+# # mac
+# # sudo port install tinysvm
+#
+########
+# YumChaのインストール
+#
+# tar xzvf yamcha-0.33.tar.gz
+# cd yamcha-0.33
+# make clean 
+# ./configure
+# make
+# make check
+# make install
+# cd ../ ;
+# ln -s /usr/local/bin/yamcha /usr/bin/yamcha ;
+#
+# コンパイルエラー発生
+# error: strlen was not declared in this scope
+#
+# 対応は以下の通り。
+# $ vim src/common.h
+# #include < string.h >  (追加)
+#
+# コンパイルエラー発生
+# error: atoi is not a member of ‘std’
+#
+# 対応は以下の通り。
+# $ vim libexec/mkdarts.cpp
+# #include < cstdlib >
+#
+# つまるところ、gcc 4.2 以前と gcc 4.3 の違いに起因するようです。
+# ggcc 4.2 以前では、string.h や stdlib.h のようなヘッダファイルは
+# 明示的にインクルードしていなくても、そのヘッダファイルでプロトタイプ宣言されている関数を呼び出すことができました。
+# gcc 4.3 では明示的なインクルードが必要です。
+# とりあえず、 src/common.h に #include <string.h> を追加して make してみます
+#
+########
+# CRF++のインストール
+#
+# tar xvf CRF++-0.58.tar.gz
+# cd CRF++-0.58
+# make clean 
+# ./configure
+# make
+# make install
+# ln -s /usr/local/bin/crf_learn /usr/bin/crf_learn ;
+# ln -s /usr/local/bin/crf_test /usr/bin/crf_test ;
+# ldconfig
+#
+########
+# cabochaのインストール
+#
+# tar zxvf  cabocha-0.60.tar.gz
+# cd cabocha-0.60
+# 
+# # デフォルトはEUC です。
+# make clean 
+# LIBS=-liconv ./configure --with-posset=IPA
+# make
+# make install
+# ln -s /usr/local/bin/cabocha /usr/bin/cabocha
+# ldconfig
+#
+# コンパイルエラー発生
+# error: strlen was not declared in this scope
+#
+# 対応は以下の通り。
+# $ vim src/common.h
+# #include <string.h>  (追加)
+#
+# コンパイルエラー発生
+# error: ‘::unlink’ has not been declared
+#
+# 対応は以下の通り。
+# $ vim src/utils.cpp
+# #include <unistd.h>  (追加)
+#
+# コンパイルエラー発生
+# chunk_learner.cpp:6:10: fatal error: 'crfpp.h' file not found
+# コマンドライン上で、xcode-select --installを実行
+# xcodeのコマンドラインツールをインストールされます。
+#
+# 対応は以下の通り。
+# /usr/local/include/crfpp.h  があることを確認する
+# .bash_profileでC_INCLUDE_PATHを設定する
+# vim /Users/root/.bash_profile
+# export C_INCLUDE_PATH=/usr/local/include:$C_INCLUDE_PATH
+# 下記で確認する
+# echo $C_INCLUDE_PATH
+#
+########
+# jumanのインストール
+#
+# tar zxvf juman-6.01.tar.gz ;
+# cd juman-6.01 ;
+# ./configure ;
+# make clean ;
+# make ;
+# make install ;
+# ln -s /usr/local/bin/juman /usr/bin/juman ;
+# ldconfig  ;
+# 
+########
+# tinycdbのインストール
+#
+# tar -zxvf tinycdb-0.78.tar.gz ;
+# cd tinycdb-0.78
+# make clean ;
+# make
+# make install ;
+# ln -s /usr/local/bin/cdb /usr/bin/cdb ;
+# ldconfig  ;
+#
+########
+# KNPのインストール
+#
+#tar -zxvf knp-3.01.tar.gz ;
+#cd knp-3.01
+#./configure ;
+#make clean ;
+#make ;
+#make install ;
+#ln -s /usr/local/bin/knp /usr/bin/knp ;
+#ldconfig  ;
+#
+#make 実行時  下記エラーの場合
+#  /bin/sh: line 0: ulimit: stack size: cannot modify limit: Invalid argument
+# vim dict/ebcf/Makefile
+# SsをSへ書き換える
+#
+########
+# 意見（評価表現）抽出ツールのインストール
+#
+# #tar -zxvf extractopinion-1.2.tar.gz ;
+# # ra カレントディレクトリで
+# mv extractopinion-1.2 ../ ;
+# cd ../extractopinion-1.2 ;
+# cd svmtools
+# make clean ;
+# make ;
+# cd ../pol ;
+# make clean ;
+# make ;
+# ldconfig  ;
+#
+# #Apacheで動作させるために必要(whichにcrf_testが通っていなければ)
+# ln -s /usr/local/bin/crf_test /usr/bin/crf_test ;
+# ./extract.sh in8 ;
+#
+#
+########
+# macab-jumandicのインストール
+#
+# $ cd gzArchive 
+# $ cd mecab-jumandic-5.1-20070304
+# $ ./configure 
+# $ make 
+# $ sudo make install 
+#
+########
+# JdepP
+#
+# $ cd gzArchive 
+# $ tar -zxvf jdepp-latest.tar.gz
+# $ cd jdepp-2015-02-08 
+# $ ./configure --with-corpus=kyoto-partial --disable-autopos-train
+# $ make 
+# $ sudo make install 
+# $ ln -s /usr/local/bin/jdepp /usr/bin/jdepp
+# $ make model ;
+# $ make install ;
+#
+######################################################
+
+

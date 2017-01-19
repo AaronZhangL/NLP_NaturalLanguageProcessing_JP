@@ -1,0 +1,185 @@
+#
+#########################################################
+# コンフィグレーション
+#########################################################
+#
+  cd `dirname $0`  ;
+  #awk='/bin/mawk' ;
+  awk="`which gawk`" ;
+  #MECAB="/usr/local/bin/mecab" ;
+  MECAB="`which mecab`" ;
+  #日本語処理のために環境変数LANGを設定
+  export LANG=ja_JP.UTF-8
+  export LC_ALL=C ;
+  #ログファイル
+  LOG="$TMP/LOG.TXT";
+  #ライブラリのディレクトリ
+  LIBDIR="lib";
+  #TMPディレクトリ
+  TMP="TMP/TMP_`date +%F_%H-%M-%S_%N`";
+  mkdir -p "$TMP";
+  chmod -R 777 "$TMP"; 
+  # 本文の最大取得文字数
+  maxLength=3000
+  #出力される重要語の数
+  TERMEX_ITEM_COUNT=10 ;
+  # 重要語抽出の設定
+      ####################
+      #calc_imp_by_HASH_Freq;
+      ####################
+      #LR=0;
+      #frq=1;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）<>
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る
+      # FRQ
+          # 無効 0 
+          # FRQ  1<>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH_TF;
+      ####################
+      #LR=0;
+      #frq=2;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）<>
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る
+## FRQ
+          # 無効 0
+          # FRQ  1
+          # TF   2 <>
+      ####################
+      #calc_imp_by_HASH; (延べ数)
+      ####################
+      LR=1;   #default
+      frq=1;  #default
+      #
+      # 延べ数をとるのか異なり数のどちらを選ぶのか。
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る <>
+          #    2 → 異なり数を取る <>
+          #    3 → パープレキシティを取る
+      # FRQ 
+          # 無効 0
+          # FRQ  1 <>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH;(異なり数)
+      ####################
+      #LR=2;
+      #frq=1;
+      #
+      # 延べ数をとるのか異なり数のどちらを選ぶのか。
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る <>
+          #    2 → 異なり数を取る <>
+          #    3 → パープレキシティを取る
+      # FRQ 
+          # 無効 0
+          # FRQ  1 <>
+          # TF   2
+      ####################
+      #calc_imp_by_HASH_PP;
+      ####################
+      #LR=3;
+      #frq=2;
+      #
+      # LR(連接情報)の設定  
+          #    0 → LRなし（隣接情報を使わない）
+          #    1 → 延べ数を取る
+          #    2 → 異なり数を取る
+          #    3 → パープレキシティを取る <>
+      # FRQ
+          # 無効 0
+          # FRQ  1
+          # TF   2 <> 
+  
+
+  #jumanディクショナリ
+  JUMANDIC="extractopinion-1.2/jumandic";
+  # 形態素解析のパラメータなしでも 1  →  強制取込 
+  reset_get_word=0;
+  ## 形態素解析のデータを 1 → 取込済 0 → 未取込
+  get_word_done=0;
+  # 専門用語全体の重要度
+  MAX_CMP_SIZE=1024; # 半角空白区切りの単名詞リストの最大長 
+  average_rate=1; # 重要度計算での連接情報と文中の用語頻度のバランス
+  #データベース用のファイルを格納するディレクトリ
+  DB="DB";
+  #単名詞ごとの連接統計情報を蓄積するDB（ファイル）
+  stat_db="${DB}/stat.db"; 
+  #出現した２語の連接とその頻度を蓄積するDB
+  comb_db="${DB}/comb.db";
+  #df (Document Frequency)用のDB
+  df_db="${DB}/df.db";
+  #DBロック用のファイル
+  stat_lock="${DB}/stat.lock";
+  comb_lock="${DB}/stat.lock";
+  df_lock="${DB}/stat.lock";
+  #重要度計算で学習機能を 1 → 使う 0 → 使わない
+  stat_mode="1";
+  #学習用DBにデータを 1 → 蓄積 0 → 蓄積しない
+  storage_mode="1";
+  #df 用DBにデータを  1 → 蓄積 0 → 蓄積しない
+  storage_df="1";
+  # 重要度計算にIDFを  1 → 使う 0 → 使わない
+  with_idf="0";
+  # 形態素解析のデータを 1 → 取込済 0 → 未取込
+  get_word_done="0";
+  # 形態素解析のパラメータなしでも 1  →　強制取込
+  reset_get_word="0";
+
+  #絞り込みをかけた重要語候補を出力するTMPファイル
+  CmpNounListTmpFile="$TMP/cmp_noun_list_tmp.txt";
+  #重要語、頻度を出力するファイル
+  CmpNounListFile="$TMP/cmp_noun_list.txt";
+  #重要語、頻度を出力するファイル
+  NcontListFile="$TMP/ncont_list.txt";
+  #複合名詞を半角スペース区切りで分割するTMPファイル
+  #OrgNounListFile="$TMP/org_noun_list.txt";
+  nounFile="$TMP/noun.txt";
+  #重要度計算対象外にする語を指定
+  IgnoreWordsFile="$TMP/ignorewords.txt";
+  touch "$IgnoreWordsFile"; ## 現状スクリプト内では空のまま
+  #重要度計算対象外にする語を検索用に加工したもの
+  IgnoreWordsFileTmp="ignorewords.tmp";
+  # 出力モードを指定
+  # 1 → 専門用語＋重要度、2 → 専門用語のみ
+  # 3 → カンマ区切り
+  ##my $output_mode = 1;
+  #出力モードをパラメータで制御できるようにする。
+  #output_mode=1;
+  #要約時の圧縮率 POSTパラメータ&permax=50というような指定で要約率を指定することができる。
+  perMax=50 ;
+
+  #HTMLで出力するかどうかの判定
+  #printHtml="no" ;
+
+  #スポーツ用語を取得するかどうかの判定
+  sportsFlg="no" ;
+  #スポーツ人名学習するかどうかの判定
+  studyName="yes" ;
+  #意見評価ディレクトリ
+  exopdir="extractopinion-1.2";
+  #意見評価 中間ファイルを一時的に保存するディレクトリ
+  export TMPDIR="$TMP"
+  #意見評価 モデルファイルのプレフィックス
+  export model=$exopdir/modeldata/model/model
+  #意見評価 辞書のディレクトリ
+  export dictionary=$exopdir/dic
+  #意見評価 環境変数設定
+  export EXOPLIB=$exopdir/lib
+  export EXOPDIC=$exopdir/dic
+  export EXOPXPR=$exopdir/xpr
+  export EXOPSRC=$exopdir/src
+  export EXOPPOL=$exopdir/pol
+  export EXOPTYP=$exopdir/typ
+

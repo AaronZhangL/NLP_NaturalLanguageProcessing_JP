@@ -4109,7 +4109,6 @@ DEBUG="TRUE" ;
 function Main(){
   #パラメータ処理
   parse ;
-exit ;
     #
     #形態素解析(見出し)
     #

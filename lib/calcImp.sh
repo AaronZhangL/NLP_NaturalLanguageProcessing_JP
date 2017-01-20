@@ -258,6 +258,7 @@ function modify_noun_list(){
 # usage: @array = $self->calc_imp_by_DB
 #
 #================================================================
+#連接情報をDBに格納しておいて他の文書で使用された連接情報を重要度に反映する
 calc_imp_by_DB(){
   imp="1";
   count="0";
@@ -273,6 +274,8 @@ calc_imp_by_DB(){
      NcontList="$comNounList";
   fi	  
   awkTermExtractList="";  
+  #名詞ごとに回す 
+  #「三振」「大学 野球」「秋季 高校 野球 大会」の単位でまわる
   while read n_count;do
     local freq=`echo "$n_count"|awk '{print $1;}'`;
     local cmp_noun=`echo "$n_count"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
@@ -285,6 +288,8 @@ calc_imp_by_DB(){
       continue;
     fi
     cmp_noun_array=(`echo "$cmp_noun"`);
+    #単名詞ごとに回す
+    #秋季 高校 野球 大会 だったら「秋季」「高校」「野球」「大会」の４回まわる
     for noun in "${cmp_noun_array[@]}";do
       if cat "$IgnoreWordsFile"|grep "^$noun$">/dev/null;then
         continue;
@@ -293,6 +298,7 @@ calc_imp_by_DB(){
         continue;
       fi
       stat_db_noun=`cat "$stat_db"|grep "^$noun,"`;
+      #連接DBから他の文書で使われた連接情報を取り出す
       if [ -n "$stat_db_noun" ];then
         uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
         total_pre=`echo "$stat_db_noun"|awk -F, '{print $3;}'`;

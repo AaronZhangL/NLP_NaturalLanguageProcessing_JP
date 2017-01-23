@@ -1,0 +1,11 @@
+#!/bin/bash
+#堀内作成
+#python インストール
+#brew install python
+#各ツールのアップデート
+#pip install --upgrade setuptools
+#pip install --upgrade pip
+#pip install --upgrade gensim
+#コマンドの使い方
+#python main.py |python unescape.py 
+

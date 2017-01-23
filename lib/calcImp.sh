@@ -250,6 +250,106 @@ function get_pre_post_pp2(){
 function modify_noun_list(){ 
   awkTermExtractList=$(echo "$awkTermExtractList"| LANG=C sort -s -k1 -nr) ; 
 }
+#================================================================
+#
+# Calicurate importance of word by DB. （連接語統計DBから重要度を計算）
+# And return sorted list by importance.
+#
+# usage: @array = $self->calc_imp_by_DB
+#
+#================================================================
+#連接情報をDBに格納しておいて他の文書で使用された連接情報を重要度に反映する
+calc_imp_by_DB(){
+  imp="1";
+  count="0";
+  if [ "$average_rate" -eq 0 ];then
+    echo "average_rate is invalid value";
+    exit;
+  fi 
+  # 頻度をFrequency か TF のいずれでとるかを選択
+  if [ "$frq" -eq 2 ];then
+     calc_imp_by_HASH_TF;  
+     NcontList="$awkTermExtractList" ;
+  else
+     NcontList="$comNounList";
+  fi	  
+  awkTermExtractList="";  
+  #名詞ごとに回す 
+  #「三振」「大学 野球」「秋季 高校 野球 大会」の単位でまわる
+  while read n_count;do
+    local freq=`echo "$n_count"|awk '{print $1;}'`;
+    local cmp_noun=`echo "$n_count"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
+    #空ならスキップ
+    if [ "$cmp_noun" = "" ];then
+      continue;
+    fi
+    #単語の文字数が長すぎたらスキップ
+    if [ "${#cmp_noun}" -gt "$MAX_CMP_SIZE" ];then
+      continue;
+    fi
+    cmp_noun_array=(`echo "$cmp_noun"`);
+    #単名詞ごとに回す
+    #秋季 高校 野球 大会 だったら「秋季」「高校」「野球」「大会」の４回まわる
+    for noun in "${cmp_noun_array[@]}";do
+      if cat "$IgnoreWordsFile"|grep "^$noun$">/dev/null;then
+        continue;
+      fi
+      if echo "$noun"|grep "^[0-9\.\,]*$" >/dev/null;then
+        continue;
+      fi
+      stat_db_noun=`cat "$stat_db"|grep "^$noun,"`;
+      #連接DBから他の文書で使われた連接情報を取り出す
+      if [ -n "$stat_db_noun" ];then
+        uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
+        total_pre=`echo "$stat_db_noun"|awk -F, '{print $3;}'`;
+        uniq_post=`echo "$stat_db_noun"|awk -F, '{print $4;}'`;
+        total_post=`echo "$stat_db_noun"|awk -F, '{print $5;}'`;
+      else
+        uniq_pre="0";
+        total_pre="0";
+        uniq_post="0";
+        total_post="0";
+      fi
+      # 連接語の延べ数をとる場合
+      if [ "$LR" = "1" ];then
+        imp=$(($imp*$(($total_pre + 1))*$(($total_post + 1)))); 
+      ## 連接語の異なり数をとる場合
+      elif [ "$LR" = "2" ];then
+        imp=$(($imp*$(($uniq_pre + 1))*$(($uniq_post + 1)))); 
+      fi
+      count=$(($count + 1));
+    done
+    if [ "$count" -eq 0 ];then
+      count=1;
+    fi
+    # 相乗平均で重要度を出す
+    imp=`awk 'BEGIN{
+        average_rate="'$average_rate'"; 
+        count="'$count'";
+        imp="'$imp'";
+        frq="'$frq'";
+        OFMT="%.6f" ;
+          if ( frq != 0 ){
+             imp = imp ^ (1 / (2 * average_rate * count));
+             imp = imp * frq;
+          } else {
+             imp = imp ^ (2 / (2 * average_rate * count));
+          }
+          print imp;
+    }'`;
+    if [ -n "$awkTermExtractList" ];then
+      awkTermExtractList="$awkTermExtractList
+$imp,$cmp_noun";  
+    else
+      awkTermExtractList="$imp,$cmp_noun";  
+    fi
+    count="0";
+    imp="1";
+  done  < <(echo "$NcontList")
+  #スコア順にsortする
+  modify_noun_list; 
+}
+
 #
 #<> calc_imp_by_HASH_PP
 # <LRPP>（連接情報＋各単名詞のエントロピーのべき乗の合計）
@@ -594,13 +694,16 @@ function termExtract.calcImp(){
         calc_imp_by_HASH_TF;
         awkTermExtractList_NOLRTF="$awkTermExtractList" ;
       fi
+    elif [ $LR -eq 3 ];then
+      calc_imp_by_HASH_PP;
+      awkTermExtractList_LRPP="$awkTermExtractList" ;
+    #学習機能（連接統計DB）を使ってのLR重要度計算
+    elif [ "$stat_mode" = "1" ];then
+      calc_imp_by_DB;
     elif [ $LR -eq 1 -o $LR -eq 2 ]; then
       calc_imp_by_HASH;  #LR=1; frq=1;   #default
       awkTermExtractList_LRTOTAL="$awkTermExtractList" ;
       awkTermExtractList_LRUNIQ="$awkTermExtractList" ;
-    elif [ $LR -eq 3 ];then
-      calc_imp_by_HASH_PP;
-      awkTermExtractList_LRPP="$awkTermExtractList" ;
     else 
       :
     fi	  

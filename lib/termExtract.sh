@@ -295,11 +295,196 @@ function termExtract.execMecab(){
   MECAB_OUT=$( echo "$1" | func_KutenKaigyo | nkf -We | "$MECAB" -b 4096 ) ;
   if [ $DEBUG == "TRUE" ]; then echo "MECAB_OUT : " ; echo "$MECAB_OUT" | nkf -wLu ; fi
 }
+function termExtract.storage_stat(){
+#comNounList
+#1 連覇 斎藤
+#1 三振
+#1 完封 東京
+#1 大学 野球
+#1 早大
+  termExtract.dbopen "$stat_lock";
+  termExtract.dbopen "$comb_lock";
+  # 文中の専門用語ごとにループ
+  while read n_count;do
+    local freq=`echo "$n_count"|awk '{print $1;}'`;
+    local cmp_noun=`echo "$n_count"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
+    #空ならスキップ
+    if [ "$cmp_noun" = "" ];then
+      continue;
+    fi
+    #単語の文字数が長すぎたらスキップ
+    if [ "${#cmp_noun}" -gt "$MAX_CMP_SIZE" ];then
+      continue;
+    fi
+    org_noun_list_array=(`echo "$cmp_noun"`);
+    noun_array=();
+    uniq_pre="";
+    total_pre="";
+    uniq_post="";
+    total_post="";
+    # メソッド IgnoreWords で指定した語と数値を無視する
+    for i in "${org_noun_list_array[@]}";do
+      #数字.,だけとかはスキップ
+      if echo "$i"|grep "^[0-9\.\,]*$" >/dev/null;then
+        continue;
+      fi
+      if ! cat "$IgnoreWordsFile"|grep "^${i}$" >/dev/null;then
+        noun_array+=($i);
+      fi
+    done
+    #複合語の場合にDBに格納する
+    if [ ${#noun_array[*]} -gt 1 ];then
+      local cnt=$((${#noun_array[@]} - 1));
+      for ((i = 0; i < $cnt; i++)) {
+        comb_key="${noun_array[i]} ${noun_array[$(($i + 1))]}";# 2つの単名詞の組を生成
+        # 複合語が初めての場合
+        if cat "$comb_db"|grep "^$comb_key," >/dev/null;then
+          first_comb="0";
+        else
+          first_comb="1";
+        fi
+        #  単名詞ごとの連接統計情報[Pre(N), Post(N)]を累積
+        #
+        # post word (後ろにとりうる単名詞）        
+        stat_db_noun=`cat "$stat_db"|grep "^${noun_array[i]},"`;
+        if [ -n "$stat_db_noun" ];then
+          uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
+          total_pre=`echo "$stat_db_noun"|awk -F, '{print $3;}'`;
+          uniq_post=`echo "$stat_db_noun"|awk -F, '{print $4;}'`;
+          total_post=`echo "$stat_db_noun"|awk -F, '{print $5;}'`;
+        else
+          uniq_pre="0";
+          total_pre="0";
+          uniq_post="0";
+          total_post="0";
+        fi
+        if [ "$first_comb" = 1 ];then
+          uniq_post=$((${uniq_post} + 1));
+        fi
+        total_post=$((${total_post} + ${freq}));
+        #stat_dbに書き込む
+        echo "${noun_array[i]},$uniq_pre,$total_pre,$uniq_post,$total_post" > "${stat_db}.tmp"
+        cat "${stat_db}"|grep -v "^${noun_array[i]}," >> "${stat_db}.tmp";
+        /bin/mv "${stat_db}.tmp" "${stat_db}";
+        # pre word　（前にとりうる単名詞）
+        stat_db_noun=`cat "$stat_db"|grep "^${noun_array[$(($i + 1))]},"`;
+        if [ -n "$stat_db_noun" ];then
+          uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
+          total_pre=`echo "$stat_db_noun"|awk -F, '{print $3;}'`;
+          uniq_post=`echo "$stat_db_noun"|awk -F, '{print $4;}'`;
+          total_post=`echo "$stat_db_noun"|awk -F, '{print $5;}'`;
+        else
+          uniq_pre="0";
+          total_pre="0";
+          uniq_post="0";
+          total_post="0";
+        fi
+        if [ "$first_comb" = 1 ];then
+          uniq_pre=$((${uniq_pre} + 1));
+        fi
+        total_pre=$((${total_pre} + ${freq}));
+        #stat_dbに書き込む
+        echo "${noun_array[$(($i + 1))]},$uniq_pre,$total_pre,$uniq_post,$total_post" > "${stat_db}.tmp"
+        cat "${stat_db}"|grep -v "^${noun_array[$(($i + 1))]}," >> "${stat_db}.tmp";
+        /bin/mv "${stat_db}.tmp" "${stat_db}";
+
+        #comb_dbに書き込む
+        comb_db_comb_key=`cat "$comb_db" |grep "^$comb_key,"`;
+        if [ -n "$comb_db_comb_key" ];then
+          comb_key_freq=`echo "$comb_db_comb_key"|awk -F, '{print $2;}'`;
+          comb_key_freq=$((${comb_key_freq} + ${freq})); 
+          echo "$comb_key,$comb_key_freq" >> "${comb_db}.tmp";
+          cat "${comb_db}"|grep -v "^$comb_key," >> "${comb_db}.tmp"
+          /bin/mv "${comb_db}.tmp" "${comb_db}";
+        else
+          echo "$comb_key,$freq" >> "${comb_db}";
+        fi
+      }
+    fi
+  done < <(echo "$comNounList")
+  termExtract.dbclose "$stat_lock";
+  termExtract.dbclose "$comb_lock";
+}
+function termExtract.dbclose(){
+  local lock="$1";
+  /bin/rm -f "$lock";
+}
+function termExtract.dbopen(){
+  local lock="$1";
+  local cnt="0";
+  #lock_timeout秒たったらシカトして前へ進む
+  while [ $cnt -lt $lock_timeout ];do
+    if [ -e "$lock" ];then
+      sleep "1";
+      cnt=$(($cnt + 1));
+      continue;
+    else
+      touch "$lock";
+      break;
+    fi
+  done
+}
+function termExtract.storage_df(){
+#comNounList
+#1 連覇 斎藤
+#1 三振
+#1 完封 東京
+#1 大学 野球
+#1 早大
+  termExtract.dbopen "$df_lock";
+  while read cmp_noun;do
+    #空ならスキップ
+    if [ "$cmp_noun" = "" ];then
+      continue;
+    fi
+    #単語の文字数が長すぎたらスキップ
+    if [ "${#cmp_noun}" -gt "$MAX_CMP_SIZE" ];then
+      continue;
+    fi
+    #
+    cmp_noun_word=`echo "$cmp_noun"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
+    #単語を登録し、頻度を加算する(複数回登場しても１加算するだけfrea見ない)
+    df_noun=`cat "$df_db"|grep "^$cmp_noun_word,"`;
+    if [ -n "$df_noun" ];then
+      df_noun_word=`echo "$df_noun"|awk -F, '{print $1;}'`;
+      df_noun_freq=`echo "$df_noun"|awk -F, '{print $2;}'`;
+      df_noun_freq=$(($df_noun_freq + 1));
+      echo "$df_noun_word,$df_noun_freq" > "${df_db}.tmp";
+    else
+      echo "$cmp_noun_word,1" > "${df_db}.tmp";
+    fi
+    cat "$df_db"|grep -v "^$cmp_noun_word," >> "${df_db}.tmp";
+    /bin/mv "${df_db}.tmp" "${df_db}";
+  done < <(echo "$comNounList")
+  # 文書数は#のハッシュで集計
+  docs=`cat "$df_db"|grep "^#,"`;
+  if [ -n "$docs" ];then
+    docs_freq=`echo "$docs"|awk -F, '{print $2;}'`;
+    docs_freq=$(($docs_freq + 1));
+    echo "#,$docs_freq" > "${df_db}.tmp";
+  else
+    echo "#,1" > "${df_db}.tmp";
+  fi
+  cat "$df_db"|grep -v "^#," >> "${df_db}.tmp";
+  /bin/mv "${df_db}.tmp" "${df_db}";
+  termExtract.dbclose "$df_lock";
+}
 #
+function termExtract.storage(){
+  if [ "$storage_mode" = 1 -o "$storage_df" = "" ];then
+    # 学習用DBにデータを蓄積
+    if [ "$storage_df" = "1" ];then
+      termExtract.storage_df;
+    elif [ "$LR" != "0" ];then
+      termExtract.storage_stat;
+    fi
+  fi 
+}
 function termExtract(){
     termExtract.execMecab "$TITLE"; # 見出しの形態素解析
     termExtract.get_imp_word.awk;   # 重要語候補抽出
     #termExtract.get_imp_word.sh;    # 重要語候補抽出
+    termExtract.storage; #学習用のデータを蓄積
     termExtract.calcImp ;                 # 重要度計算(awk とbashの共用）ここは最大重要課題
     termExtract.execTerm.awk;                 # 重要語リストと計算した重要度を変数に出力する。
     #termExtract.execTerm.sh;             # 見出しは全ての重要語を出力(※新規追加）

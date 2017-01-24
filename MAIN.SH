@@ -13,8 +13,8 @@
 # 4. 日本語語彙体形を使ってカテゴリ分類
 
 #デバッグモード
-#DEBUG="TRUE" ;
-DEBUG="FALSE" ;
+DEBUG="TRUE" ;
+#DEBUG="FALSE" ;
 
 
 source config ;               #コンフィグファイル読み込み
@@ -43,9 +43,31 @@ function Main(){
   source lib/print.sh ;         #出力
   printOut ;
 }
-
+  #URLGETOPT:入力パラメータ
+  #TITLE:見出し
+  #DESCRIPTION:本文
+  #perMax:要約率
+  #summaxlength:要約後最大文字数
+  #ArticleType:記事タイプ
+  #
+  #isAscii:日本語判定
+  #
+  #MECAB_OUT
+  #TITLEまたはDESCRIPTIONの和布蕪解析結果。
+  #表層形  品詞,品詞細分類1 ,品詞細分類2 ,品詞細分類3,活用形,活用型,原形,読み,発音
+  #例:早大  名詞,固有名詞,組織,*,*,*,早大,ソウダイ,ソーダイ
+  #
+  #comNounList
+  #和布蕪解析結果から名詞を取り出して、使用頻度を数えたもの。
+  #名詞とは、
+  #品詞が名詞であること
+  #品詞再分類1が一般 or サ変接続 or 固有名詞 または
+  #品詞再分類1が接尾でかつ品詞細分類2が一般 or サ変接続のもの。
+  #但し、形容動詞は含まない。
+  #複合名詞（名詞が連続する場合）は一つの名詞として取り扱う。
   #
   #calc_imp_by_HASH_Freq
+  #
   echo "1. calc_imp_by_HASH_Freq#######################" ;
   # $awkTermExtractList_NOLRFRQ ;
   #LR=0 ;

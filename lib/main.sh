@@ -75,6 +75,11 @@ function selectCalc(){
   case "$1" in
     1)
       #NOLRFRQ 
+      #ここにロジックや計算手法の特長などを書いてほしい。
+      #たくさん書いてくれれば、こちらで整理するので、まずは
+      #いろいろ書いてみて
+      #
+      #
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り
                     + 1 : calc_imp_by_HASH_Freq（）
@@ -89,6 +94,11 @@ function selectCalc(){
       ;;
     2)  
       #NOLRTF
+      #
+      #
+      #
+      #
+      #
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り
                       1 : calc_imp_by_HASH_Freq（）
@@ -103,6 +113,11 @@ function selectCalc(){
       ;;     
     3)
       #NOLRTOTAL
+      #
+      #
+      #
+      #
+      #
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り
                       1 : calc_imp_by_HASH_Freq（）
@@ -117,6 +132,11 @@ function selectCalc(){
       ;;
     4)
       #LRUNIQ
+      #
+      #
+      #
+      #
+      #
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り
                       1 : calc_imp_by_HASH_Freq（）
@@ -145,6 +165,11 @@ function selectCalc(){
       ;; 
     6)
       #LRTFDB
+      #
+      #
+      #
+      #
+      #
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り
                       1 : calc_imp_by_HASH_Freq（）
@@ -159,6 +184,12 @@ function selectCalc(){
       stat_mode=1 
       ;;
     *)
+      # Default
+      #
+      #
+      #
+      #
+      #
       #calc_imp_by_HASH（延べ数） <>default
       if [ "$LIST_MODEL" == "TRUE" ] ; then
       echo '計算モデルは以下の通り

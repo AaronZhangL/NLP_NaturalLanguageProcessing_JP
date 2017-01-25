@@ -16,7 +16,8 @@
   #ライブラリのディレクトリ
   LIBDIR="lib";
   #TMPディレクトリ
-  TMP="TMP/TMP_`date +%F_%H-%M-%S_%N`";
+  #TMP="TMP/TMP_`date +%F_%H-%M-%S_%N`";
+  TMP="TMP/TMP.$$_`date +%F_%H-%M-%S_%N`";
   mkdir -p "$TMP";
   chmod -R 777 "$TMP"; 
   # 本文の最大取得文字数
@@ -50,7 +51,7 @@
           #    1 → 延べ数を取る
           #    2 → 異なり数を取る
           #    3 → パープレキシティを取る
-## FRQ
+      # FRQ
           # 無効 0
           # FRQ  1
           # TF   2 <>

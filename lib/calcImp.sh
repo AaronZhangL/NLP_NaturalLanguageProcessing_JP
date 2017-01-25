@@ -444,7 +444,7 @@ function calc_imp_by_HASH_TF(){
    } '`
    #awkTermExtractListの処理：
    echo -en "$comNounList" > $CmpNounListFile; #変数のまま処理できればベストだが。。。
-   awkTermExtractList=$(echo -e $awkLengthList | $awk '
+   awkTermExtractList=$(echo -e "$awkLengthList" | $awk '
      BEGIN {
         #重要語リストでハッシュを作る
         #grep用、参照用、出力用の３つのハッシュを作る

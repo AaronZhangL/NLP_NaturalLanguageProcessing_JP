@@ -82,11 +82,12 @@ function get_pre_post_pp2(){
       nounlength = length(NounList) ;
       if( nounlength < 2 ){ next ; }
       #連接情報取得処理。
+      #「大学 野球 秋季 リーグ」だったら「大学 野球」「野球 秋季」「秋季 リーグ」でまわる。
       for ( i = 1; i < nounlength; i++){
         #print "NounList[" i "]= " NounList[i] ;
-        noun_0=NounList[i] ;
-        noun_1=NounList[i+1] ;
-        comb_key=NounList[i]" "NounList[i+1] ;
+        noun_0=NounList[i] ; #noun_0「大学」
+        noun_1=NounList[i+1] ; #noun_1「野球」
+        comb_key=NounList[i]" "NounList[i+1] ; #comb_key「大学 野球」
         #TODO 要必要性確認 必要ならawk化
         #if [ -z "${comb[\"$comb_key\"]}" ] ; then
         #	  first_comb=1;
@@ -365,6 +366,9 @@ function calc_imp_by_HASH_PP(){
   imp=0;       # 専門用語全体の重要度
   count=0; # ループカウンター（専門用語中の単名詞数をカウント） 
   # 頻度をFrequency か TF のいずれでとるかを選択
+  # FrequencyとTFはいずれも単語の出現頻度。
+  # 違う点は、複合名詞が包含関係にある場合、包含される複合名詞のスコアを加算する。
+  # 例えば、「高校 野球 大会」は「全国 高校 野球 大会」に包含されるので、「高校 野球 大会」の頻度に「全国 高校 野球 大会」の頻度を加算する
   if [ "$frq" -eq 2 ];then
      calc_imp_by_HASH_TF;  
      NcontList="$awkTermExtractList" ;
@@ -385,14 +389,18 @@ function calc_imp_by_HASH_PP(){
 # 出力１: awkTermExtractList ( 変数 )
 # 出力２: $CmpNounListFile ( ファイル )
 #
+#複合単語の出現頻度がそのままスコアになる点はFreqと同じ。
+# 違う点は、複合名詞が包含関係にある場合、包含される複合名詞のスコアを加算する。
+# 例えば、「高校 野球 大会」は「全国 高校 野球 大会」に包含されるので、「高校 野球 大会」の頻度に「全国 高校 野球 大会」の頻度を加算する
+#下の例だと、「高校 野球 大会」自体の出現頻度は3回だが、「全国 高校 野球 大会」という単語があり「高校 野球 大会」を包含する。「全国 高校 野球 大会」の出現頻度は2回なので、「高校 野球 大会」のスコアは2回分加算され 5になる
 function calc_imp_by_HASH_TF(){
     #
     #cmpNounListFile
     #2 リーグ
     #1 大学 野球
     #1 完封
-    #1 秋季 リーグ
-    #1 秋季 リーグ 早大
+    #3 高校 野球 大会
+    #2 全国 高校 野球 大会
     #1 連覇
     #
     #awkLengthListの処理： 重要語をトークン数ごとに並べなおす
@@ -400,6 +408,7 @@ function calc_imp_by_HASH_TF(){
     #東京,五輪,優勝（１トークン）
     #東京 五輪,リーグ 戦,適時 打（２トークン）
     #東京 五輪 オリンピック（３トークン）
+    #トークン数ごとに分けているが、ロジック的には名詞の包含関係をgrepして確認するためだけ。小さいトークン数から回していって自分より大きいトークン数の名詞と包含関係があるか順番に見ていっているだけ。
     awkLengthList=`echo "$comNounList" | $awk '
     BEGIN {
         MAX_CMP_SIZE=int("'$MAX_CMP_SIZE'") ;
@@ -532,20 +541,21 @@ function calc_imp_by_HASH_TF(){
 function calc_imp_by_HASH_Freq(){
   #comNounListからサイズの長いものだけ省いてそのまま出力するだけ
   #comNounList
-  #2 リーグ
-  #1 大学 野球
-  #1 完封
-  #1 秋季 リーグ
-  #1 秋季 リーグ 早大
-  #1 連覇
+  #出現頻度|名詞（複合名詞の場合、単名詞ごとにスペース区切りにしている）
+  #2 早大
+  #2 大学 野球 秋季
+  #1 明治 神宮
+  #シンプルに単語の出現頻度をそのままスコアリングに使用する。
+  #comNounListの値をそのままスコアリングしているだけ。
+  #複合名詞は単名詞ごとにスペース区切りになっているが、このロジックではそのまま使うだけなので意味はない。
   awkTermExtractList=$(echo "$comNounList" | $awk '
     BEGIN {
       MAX_CMP_SIZE=int("'$MAX_CMP_SIZE'") ;
     } {
-      #ex:5 大学 野球 秋季 リーグ frqc=5  cmp_noun=大学 野球 秋季 リーグ
+      #ex:5 大学 野球 秋季  frqc=2  cmp_noun=大学 野球 秋季
       #頻度を取り出す ex:1
       freqc=$1 ;
-      #頻度を除いて重要語だけ取り出す。 ex:大学 野球 秋季 リーグ
+      #頻度を除いて重要語だけ取り出す。 ex:大学 野球 秋季
       #TODO 最短マッチになっているか確認
       cmp_noun=$0 ;
       gsub( /^[[:blank:]]*/, "", cmp_noun) ;
@@ -684,16 +694,49 @@ function calc_imp_by_HASH(){
 #
 # Awk/bash共通 # 重要度計算
 # 入力: comNounList ( 変数 ) # 入力: MAX_CMP_SIZE ( 変数 ) # 出力: awkTermExtractList ( 変数 )
+#
+#LR(連接情報)の設定  
+#0 → LRなし（隣接情報を使わない）
+#1 → 延べ数を取る
+#2 → 異なり数を取る
+#3 → パープレキシティを取る <>
+#連接情報とは、複合名詞を単名詞に分割し、単名詞同士の前後関係を見るもの。
+#例えば、複合名詞「高校野球大会」は「高校」「野球」「大会」の単名詞に分割できる。この場合の連接関係は「高校」「野球」と「野球」「大会」。
+
+# FRQ
+# 無効 0
+# FRQ  1
+# TF   2 <> 
+# FRQは名詞の出現頻度。
+# FRQは、シンプルに複合名詞の出現頻度をスコアリングする。
+# TFは、複合名詞の出現頻度をスコアリングする点ではFRQと同じ。
+# 違う点は、複合名詞が包含関係にある場合、包含される複合名詞のスコアを加算する。
+# 例えば、「高校 野球 大会」は「全国 高校 野球 大会」に包含されるので、「高校 野球 大会」の頻度に「全国 高校 野球 大会」の頻度を加算する
+#
+# STAT
+#0-> 使用しない 
+#1-> 使用する
+#
+#STATモードは、他の文書の連接情報を蓄積しておきスコアリングに利用する。
 function termExtract.calcImp(){
   get_word_done=1;
+#LR=0 は連接情報を見ない。複合単語の出現頻度がそのままスコアになる。
     if [ $LR -eq 0 ];then
       if [ $frq -eq 1 ];then
+#calc_imp_by_HASH_Freq
+#複合単語の出現頻度がそのままスコアになる。
         calc_imp_by_HASH_Freq;
         awkTermExtractList_NOLRFRQ="$awkTermExtractList" ;
       elif [ $frq -eq 2 ];then
+#calc_imp_by_HASH_TF
+#複合単語の出現頻度がそのままスコアになる点はFreqと同じ。
+# 違う点は、複合名詞が包含関係にある場合、包含される複合名詞のスコアを加算する。
+# 例えば、「高校 野球 大会」は「全国 高校 野球 大会」に包含されるので、「高校 野球 大会」の頻度に「全国 高校 野球 大会」の頻度を加算する
         calc_imp_by_HASH_TF;
         awkTermExtractList_NOLRTF="$awkTermExtractList" ;
       fi
+#LR=3は連接情報を見る。
+#3はパプレキシティを見る。
     elif [ $LR -eq 3 ];then
       calc_imp_by_HASH_PP;
       awkTermExtractList_LRPP="$awkTermExtractList" ;

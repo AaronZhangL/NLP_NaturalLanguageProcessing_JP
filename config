@@ -21,9 +21,9 @@
   mkdir -p "$TMP";
   chmod -R 777 "$TMP"; 
   # 本文の最大取得文字数
-  maxLength=3000
+  maxLength=30000
   #出力される重要語の数
-  TERMEX_ITEM_COUNT=10 ;
+  TERMEX_ITEM_COUNT=100 ;
   # 重要語抽出の設定
       ####################
       #calc_imp_by_HASH_Freq;

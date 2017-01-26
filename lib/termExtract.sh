@@ -49,8 +49,53 @@ function termExtract.Rescore.awk(){
     SCORE= $0 + '"$DESCRIPTION_SCORE_MAX"' ; #加算
     printf "<KEY>%s<SCORE>%.2f</SCORE></KEY>" , TERM , SCORE ;
   }' | $awk 'NR<='"$TERMEX_ITEM_COUNT"'');
+
   #KEYS_RESULT_LINE=$(echo "<KEYS>${KEYS_TITLE}${TERM_EXTRACT_RESULT_LINE}</KEYS>") ;
-  KEYS_RESULT_LINE="<KEYS>${KEYS_TITLE}${TERM_EXTRACT_RESULT_LINE}</KEYS>" ;
+  #echo "KEYS_TITLE : ${KEYS_TITLE}"
+  #echo "TERM_EXTRACT_RESULT_LINE : ${TERM_EXTRACT_RESULT_LINE}" ;
+
+  :>$TMP/scoreuniq.tmp ;
+	:>$TMP/no_scoreuniq.tmp ;
+  T=$( echo "${KEYS_TITLE}" | sed -e "s/<\/KEY>/<\/KEY>\n/g" -e "s/<\/SCORE>//g" -e "s/<\/KEY>//g" -e "s/<SCORE>/ /g" -e "s/<KEY>//g") ;
+#echo "T: $T" ;
+  D=$( echo "${TERM_EXTRACT_RESULT_LINE}" | sed -e "s/<\/KEY>/<\/KEY>\n/g" -e "s/<\/SCORE>//g" -e "s/<\/KEY>//g" -e "s/<SCORE>/ /g" -e "s/<KEY>//g" );
+#echo "D: $D" ;
+  
+	echo "$T" | while read line; do
+			TITLE=$(echo "$line" | awk '{ print $1; }');
+			SCORE=$(echo "$line" | awk '{ print $2; }');
+
+			if echo "$D" | grep "$TITLE" >/dev/null; then
+ 				 echo "$D" | grep "$TITLE" | while read line2; do
+					 B_SCORE=$(echo "$line2" | awk '{ print $2; }');
+					 GT=$(echo $SCORE + $B_SCORE | bc);
+					 echo "$TITLE $GT" >> $TMP/scoreuniq.tmp ;
+					 echo "$TITLE" >> $TMP/no_scoreuniq.tmp ;
+				 done	
+			else
+					echo "$TITLE" "$SCORE" >> $TMP/scoreuniq.tmp;
+		  fi
+  done
+#	echo "#";
+  :> $TMP/no_d.tmp ;
+	echo "$D" | while read line; do
+		TITLE=$(echo "$line" | awk '{ print $1; }');
+	  if cat $TMP/no_scoreuniq.tmp | grep "^$TITLE$">/dev/null; then
+				: 
+		else
+			echo "$line" 	>> $TMP/no_d.tmp ;
+    fi
+  done
+#	cat $TMP/scoreuniq.tmp ;
+#  echo "#no_scoreuniq.tmp"
+#	cat $TMP/no_scoreuniq.tmp ;
+#  echo "#no_d.tmp"
+#	cat $TMP/no_d.tmp ;
+	
+  KEYS_RESULT_LINE="<KEYS>"$(cat $TMP/scoreuniq.tmp $TMP/no_d.tmp | sort -r -k2 | uniq | awk '{ print "<KEY>" $1 "<SCORE>"$2"</SCORE></KEY>"; }' | tr -d '\n')"</KEYS>";
+#KEYS_RESULT_LINE="<KEYS>${KEYS_TITLE}${TERM_EXTRACT_RESULT_LINE}</KEYS>" ;
+#	echo "$KEYS_RESULT_LINE" ;
+
   if [ $DEBUG == "TRUE" ]; then echo "KEYS_RESULT_LINE : $KEYS_RESULT_LINE" ; fi
 }
 #

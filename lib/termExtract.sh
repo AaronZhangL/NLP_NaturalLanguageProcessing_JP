@@ -371,7 +371,6 @@ function termExtract.storage_stat(){
         else
           first_comb="1";
         fi
-        echo "first:$first_comb";
         #  単名詞ごとの連接統計情報[Pre(N), Post(N)]を累積
         #
         # post word (後ろにとりうる単名詞）        

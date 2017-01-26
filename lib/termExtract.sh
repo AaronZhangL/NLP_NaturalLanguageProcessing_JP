@@ -291,7 +291,7 @@ function termExtract.get_imp_word.awk(){
 # 入力: 標準入力 # 出力: 標準出力
 function func_KutenKaigyo(){
   LC_ALL="" ;
-  awk '{
+  $awk '{
     KAGK=0; MARK=0; MAHK=0;
     gsub(/[[:blank:]]+/, "　", $0);
     num = split($0,sa,"");
@@ -556,10 +556,13 @@ function termExtract(){
     termExtract.execMecab "$DESCRIPTION" ;     # 本文の形態素解析
     termExtract.get_imp_word.awk;   # メソッド実行
     #termExtract.get_imp_word.sh;    # メソッド実行
+    termExtract.storage; #学習用のデータを蓄積
     termExtract.calcImp ;                 # 重要度計算(awk とbashの共用）ここは最大重要課題
     termExtract.execTerm.awk "bc100" ;        # 重要語リストと計算した重要度をファイルに出力する。
     #termExtract.execTerm.sh "bc100";     # 本文はbc100によりスコア1.00以上の重要語を出力（※新規追加）
     TERM_EXTRACT_RESULT_LINE="$TermExtOut" ; #本文の結果を格納
+exit ;
+    #
     termExtract.Rescore.awk;                   # スコアの振り直し
     #termExtract.Rescore.sh ;              # 重要語を整列させてスコアを振り直す
 }

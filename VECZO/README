@@ -7,11 +7,8 @@
 #pip install --upgrade pip
 #pip install --upgrade gensim
 #コマンドの使い方
-#cat in|python main.py |python unescape.py 
-#TODO 日本語の標準入力が文字化ける？デコードするだけじゃダメ？
-#in ファイルは１コンテンツごとに１行。単語ごとにスペースを入れる
-#IT 企業 エンジニア 統計学 機械学習
-#魚 ミジンコ カサゴ 鯖
-#山 豚 カツ丼
-
+#学習
+#cat in|python train.py |python unescape.py 
+#実行
+#echo "魚 カサゴ 水族館"|python VECZO.py|python unescape.py
 

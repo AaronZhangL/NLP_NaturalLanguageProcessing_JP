@@ -5,10 +5,12 @@ from gensim import models
 import sys
 import codecs
 
+sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
+sys.stdin = codecs.getreader('utf_8')(sys.stdin)
 
 article_list = []
 for line in sys.stdin:
-    itemlist = line.rstrip().decode('utf-8').split(' ')
+    itemlist = line.rstrip().split(' ')
     article_list.append(itemlist)
 
 sentences = []    

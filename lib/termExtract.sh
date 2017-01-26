@@ -561,7 +561,6 @@ function termExtract(){
     termExtract.execTerm.awk "bc100" ;        # 重要語リストと計算した重要度をファイルに出力する。
     #termExtract.execTerm.sh "bc100";     # 本文はbc100によりスコア1.00以上の重要語を出力（※新規追加）
     TERM_EXTRACT_RESULT_LINE="$TermExtOut" ; #本文の結果を格納
-exit ;
     #
     termExtract.Rescore.awk;                   # スコアの振り直し
     #termExtract.Rescore.sh ;              # 重要語を整列させてスコアを振り直す

@@ -411,7 +411,7 @@ function termExtract.storage_stat(){
   # comb_key 「秋季 野球」「野球 大会」
         comb_key="${noun_array[i]} ${noun_array[$(($i + 1))]}";# 2つの単名詞の組を生成
         # 連接語が初登場の場合 first_comb =1
-        if cat "$comb_db"|grep "^$comb_key," >/dev/null;then
+        if cat "$comb_db"|grep ",$comb_key$" >/dev/null;then
           first_comb="0";
         else
           first_comb="1";
@@ -485,15 +485,15 @@ function termExtract.storage_stat(){
         #「秋季 野球 大会」なら 「秋季 野球」「野球 大会」を登録する。
         #秋季 野球 +2
         #野球 大会 +2
-        comb_db_comb_key=`cat "$comb_db" |grep "^$comb_key,"`;
+        comb_db_comb_key=`cat "$comb_db" |grep ",$comb_key$"`;
         if [ -n "$comb_db_comb_key" ];then
-          comb_key_freq=`echo "$comb_db_comb_key"|awk -F, '{print $2;}'`;
+          comb_key_freq=`echo "$comb_db_comb_key"|awk -F, '{print $1;}'`;
           comb_key_freq=$((${comb_key_freq} + ${freq})); 
-          echo "$comb_key,$comb_key_freq" >> "${comb_db}.tmp";
-          cat "${comb_db}"|grep -v "^$comb_key," >> "${comb_db}.tmp"
+          echo "$comb_key_freq,$comb_key" >> "${comb_db}.tmp";
+          cat "${comb_db}"|grep -v ",$comb_key$" >> "${comb_db}.tmp"
           /bin/mv "${comb_db}.tmp" "${comb_db}";
         else
-          echo "$comb_key,$freq" >> "${comb_db}";
+          echo "$freq,$comb_key" >> "${comb_db}";
         fi
       }
     fi

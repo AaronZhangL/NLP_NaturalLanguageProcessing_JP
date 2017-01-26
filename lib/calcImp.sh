@@ -97,7 +97,7 @@
 # imp = imp/log(2)
 #
 function get_pre_post_pp2(){
-  awkTermExtractList=`echo $NcontList | $awk '
+  awkTermExtractList=`echo "$NcontList" | $awk '
     BEGIN {
       MAX_CMP_SIZE=int("'$MAX_CMP_SIZE'") ;
       wc = 0;

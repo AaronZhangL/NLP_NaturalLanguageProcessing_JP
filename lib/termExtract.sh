@@ -297,15 +297,16 @@ function termExtract.execMecab(){
 }
 function termExtract.storage_stat(){
 #comNounList
-#1 連覇 斎藤
-#1 三振
-#1 完封 東京
-#1 大学 野球
-#1 早大
+#高校 野球 1
+#早大 3
+#秋季 野球 大会 2
   termExtract.dbopen "$stat_lock";
   termExtract.dbopen "$comb_lock";
+  # 複合名詞を単名詞に分割して、連接情報を登録する
   # 文中の専門用語ごとにループ
   while read n_count;do
+  #freq=2
+  #cmp_noun=秋季 野球 大会
     local freq=`echo "$n_count"|awk '{print $1;}'`;
     local cmp_noun=`echo "$n_count"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
     #空ならスキップ
@@ -332,12 +333,16 @@ function termExtract.storage_stat(){
         noun_array+=($i);
       fi
     done
-    #複合語の場合にDBに格納する
+  #複合語の場合にDBに格納する
+  # 「秋季 野球 大会」だったら「秋季」「野球」の2回まわる
     if [ ${#noun_array[*]} -gt 1 ];then
       local cnt=$((${#noun_array[@]} - 1));
       for ((i = 0; i < $cnt; i++)) {
+  # ループ内で１個後ろの単語とくっつけて連接語にし、連接情報を登録
+  # 「秋季 野球」「野球 大会」が連接語になる
+  # comb_key 「秋季 野球」「野球 大会」
         comb_key="${noun_array[i]} ${noun_array[$(($i + 1))]}";# 2つの単名詞の組を生成
-        # 複合語が初めての場合
+        # 連接語が初登場の場合 first_comb =1
         if cat "$comb_db"|grep "^$comb_key," >/dev/null;then
           first_comb="0";
         else
@@ -346,6 +351,14 @@ function termExtract.storage_stat(){
         #  単名詞ごとの連接統計情報[Pre(N), Post(N)]を累積
         #
         # post word (後ろにとりうる単名詞）        
+        # 前の名詞をpost word （後ろにとりうる単名詞）という
+        # 「秋季 野球」だったら「秋季」
+        # 「野球 大会」だったら「野球」
+        # _post に頻度を加算する
+        # uniq_pre +0
+        # total_pre +0
+        # uniq_post +0 or +1 「秋季 野球 」がcomb_db上初登場だったら +1
+        # total_post +frq 「秋季 野球 大会」なら +2
         stat_db_noun=`cat "$stat_db"|grep "^${noun_array[i]},"`;
         if [ -n "$stat_db_noun" ];then
           uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
@@ -367,6 +380,13 @@ function termExtract.storage_stat(){
         cat "${stat_db}"|grep -v "^${noun_array[i]}," >> "${stat_db}.tmp";
         /bin/mv "${stat_db}.tmp" "${stat_db}";
         # pre word　（前にとりうる単名詞）
+        # 後ろの名詞をpre word（前にとりうる単名詞）という
+        # 「秋季 野球」だったら「野球」
+        # 「野球 大会」だったら「大会」
+        # uniq_pre +0 or +1 「野球 大会」がcomb_db上初登場だったら +1
+        # total_pre +frq 「秋季 野球 大会」なら +2
+        # uniq_post +0
+        # total_post +0
         stat_db_noun=`cat "$stat_db"|grep "^${noun_array[$(($i + 1))]},"`;
         if [ -n "$stat_db_noun" ];then
           uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
@@ -384,11 +404,19 @@ function termExtract.storage_stat(){
         fi
         total_pre=$((${total_pre} + ${freq}));
         #stat_dbに書き込む
+        #uniq_pre total_pre uniq_post total_post
+        #秋季 0 0 +1 +2
+        #野球 +1 +2 +1 +2
+        #大会 +1 +2 0 0
+        #  （uniq_pre uniq_post は連接語が初登場の場合のみ+1）
         echo "${noun_array[$(($i + 1))]},$uniq_pre,$total_pre,$uniq_post,$total_post" > "${stat_db}.tmp"
         cat "${stat_db}"|grep -v "^${noun_array[$(($i + 1))]}," >> "${stat_db}.tmp";
         /bin/mv "${stat_db}.tmp" "${stat_db}";
 
         #comb_dbに書き込む
+        #「秋季 野球 大会」なら 「秋季 野球」「野球 大会」を登録する。
+        #秋季 野球 +2
+        #野球 大会 +2
         comb_db_comb_key=`cat "$comb_db" |grep "^$comb_key,"`;
         if [ -n "$comb_db_comb_key" ];then
           comb_key_freq=`echo "$comb_db_comb_key"|awk -F, '{print $2;}'`;
@@ -424,13 +452,22 @@ function termExtract.dbopen(){
     fi
   done
 }
+
+# ========================================================================
+# storage_df -- storage compound noun to Data Base File
+# (DF [Document Frequency]DBの情報を蓄積）
+# 
+# ========================================================================
 function termExtract.storage_df(){
-#comNounList
-#1 連覇 斎藤
-#1 三振
-#1 完封 東京
-#1 大学 野球
-#1 早大
+#DF [Document Frequency]DB
+#統計用のデータで重要度計算では使用しない
+#単語（複合名詞も分割しない）の登場頻度を登録していく
+#ついでに今まで登録した文書の総数も登録しとく
+#
+#高校 野球 1
+#早大 3
+#秋季 野球 大会 1
+#文書総数 12
   termExtract.dbopen "$df_lock";
   while read cmp_noun;do
     #空ならスキップ
@@ -443,7 +480,7 @@ function termExtract.storage_df(){
     fi
     #
     cmp_noun_word=`echo "$cmp_noun"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
-    #単語を登録し、頻度を加算する(複数回登場しても１加算するだけfrea見ない)
+    #単語を登録し、頻度を加算する(複数回登場しても１加算するだけfrq見ない)
     df_noun=`cat "$df_db"|grep "^$cmp_noun_word,"`;
     if [ -n "$df_noun" ];then
       df_noun_word=`echo "$df_noun"|awk -F, '{print $1;}'`;
@@ -474,8 +511,10 @@ function termExtract.storage(){
   if [ "$storage_mode" = 1 -o "$storage_df" = "" ];then
     # 学習用DBにデータを蓄積
     if [ "$storage_df" = "1" ];then
+    #単語の頻度を格納する（格納するだけで使ってない気が）
       termExtract.storage_df;
     elif [ "$LR" != "0" ];then
+    #複合名詞の連接情報を格納する。
       termExtract.storage_stat;
     fi
   fi 
@@ -484,6 +523,7 @@ function termExtract(){
     termExtract.execMecab "$TITLE"; # 見出しの形態素解析
     termExtract.get_imp_word.awk;   # 重要語候補抽出
     #termExtract.get_imp_word.sh;    # 重要語候補抽出
+    #重要語を抽出したら学習用のデータベースにすぐ蓄積する
     termExtract.storage; #学習用のデータを蓄積
     termExtract.calcImp ;                 # 重要度計算(awk とbashの共用）ここは最大重要課題
     termExtract.execTerm.awk;                 # 重要語リストと計算した重要度を変数に出力する。

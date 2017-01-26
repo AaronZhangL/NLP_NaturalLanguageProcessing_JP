@@ -912,7 +912,6 @@ function termExtract.calcImp(){
 #frq=1 Frequencyを利用する。
 #frq=2 TFを利用する。
     elif [ "$stat_mode" = "1" ];then
-      echo "lr:$LR frq:$frq calc_imp_by_DB"
       calc_imp_by_DB;
 #文章中の連接情報を使ってのLR重要度計算
 #ロジック的にはcalc_imp_by_DBと同じ。使用する連接情報が文章中のものに限定される点が異なる。
@@ -922,7 +921,6 @@ function termExtract.calcImp(){
 #frq=1 Frequencyを利用する。
 #frq=2 TFを利用する。
     elif [ $LR -eq 1 -o $LR -eq 2 ]; then
-      echo "lr:$LR frq:$frq calc_imp_by_HASH"
       calc_imp_by_HASH;  #LR=1; frq=1;   #default
       awkTermExtractList_LRTOTAL="$awkTermExtractList" ;
       awkTermExtractList_LRUNIQ="$awkTermExtractList" ;

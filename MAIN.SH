@@ -181,7 +181,8 @@ function selectCalc(){
       fi
       LR=1 ; # LR=2
       frq=1;
-      stat_mode=1 
+      stat_mode=1; 
+      storage_mode=1;
       ;;
     *)
       # Default

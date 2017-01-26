@@ -180,7 +180,7 @@ function termExtract.get_imp_word.sh(){
   comNounList=$( echo "$MECAB_OUT" | nkf -Ew  | if [ -n "${TMP}" ] || [ "${reset_get_word}" = "1" ] ; then
     while read line ;do
       #echo "$line" | xargs -P6 -I % /bin/bash -c "termExtract.get_imp_word_while.sh %" ; 
-      termExtract.get_imp_word_while.sh $line ;
+      termExtract.get_imp_word_while.sh "$line" ;
     done | LANG=C sort -s -k1 | uniq -c | sed -e "s/^ *//g" ;
     elif [ "${LR}" = "0" ] && [ "${frq}" = "0" ] ; then
      exit;
@@ -203,58 +203,83 @@ function termExtract.get_imp_word.sh(){
 #1 早大
 #
 function termExtract.get_imp_word.awk(){
-  comNounList=$( echo "$MECAB_OUT" | nkf -Ew | $awk '
+  CmpNounListTmp="";
+  comNounList=`echo "$MECAB_OUT" | nkf -Ew | awk '
   BEGIN{
     get_word_done = "'$get_word_done'" ;
     LR = "'$LR'" ;
     frq = "'$frq'" ;
     TMP = "'$TMP'" ;
+    # LR でも頻度でも重要度計算しないときは強制終了
     if ( LR == 0 && frq == 0 ){
-      exit;     # LR でも頻度でも重要度計算しないときは強制終了
+      #TODO 処理をどうするかは要相談 
+      exit;
     } else if ( TMP  != "" || reset_get_word == 1 ){
       # 処理継続
     } else if ( get_word_done == 0 ) {
+        #TODO 処理をどうするかは要相談 
       exit;
     }
+
   } {
-    noun=$1;    #単語の解析結果 名詞,一般,*,*,*,*,大学,ダイガク,ダイガク
-    val=$2;     #単語解析結果から先頭３つ（品詞,品詞細分類1,品詞細分類2）を抽出
-    part_of_speach="";
-    cl_1="";
-    cl_2="";
+    noun=$1;
+    #単語の解析結果 名詞,一般,*,*,*,*,大学,ダイガク,ダイガク
+    val=$2;
+    #単語解析結果から先頭３つ（品詞,品詞細分類1,品詞細分類2）を抽出
+      part_of_speach="";
+      cl_1="";
+      cl_2="";
     split(val , hArray, ",");
     if ( val != "" ) {
-      part_of_speach=hArray[1]; #名詞
-      cl_1=hArray[2];           #一般
-      cl_2=hArray[3];           #サ変接続
+      part_of_speach=hArray[1];
+      cl_1=hArray[2];
+      cl_2=hArray[3];
     }
+   
     if ( part_of_speach == "名詞" && (cl_1 == "一般" ||  cl_1 == "サ変接続" || cl_1 == "固有名詞" ||  ( cl_1 == "接尾"  && (cl_2 == "一般" || cl_2 == "サ変接続")) ) ){
-      terms = terms " " noun; must  = 0; next;
+      terms = terms " " noun;
+      must  = 0;
+      next;
     } else if ( part_of_speach == "名詞" && ( (cl_1 == "接尾" && cl_2 == "形容動詞語幹") || cl_1 == "形容動詞語幹" || cl_1 == "ナイ形容詞語幹") ) {
-      terms = terms " " noun; must  = 1; next;
+      terms = terms " " noun;
+      must  = 1;
+      next;
     }else if ( part_of_speach == "記号" && cl_1 == "アルファベット") {
-      terms = terms " " noun; must  = 0; next;
+        terms = terms " " noun;
+        must  = 0;
+        next;
     } else if (part_of_speach == "動詞") {
       terms = "";
     } else {
       if ( must == "0") {
-        gsub(/^ /, "", terms); gsub(/ $/, "", terms); gsub(/^本 /, "", terms); gsub(/ など$/, "", terms);
-        gsub(/ ら$/, ""  terms); gsub(/ 上$/, "", terms); gsub(/ 内$/, "", terms); gsub(/ 型$/, "", terms);
-        gsub(/ 間$/, "", terms); gsub(/ 中$/, "", terms); gsub(/ 毎$/, "", terms); gsub(/ 等$/, "", terms);
+        gsub(/^ /, "", terms);
+        gsub(/ $/, "", terms);
+        gsub(/^本 /, "", terms);
+        gsub(/ など$/, "", terms);
+        gsub(/ ら$/, ""  terms);
+        gsub(/ 上$/, "", terms);
+        gsub(/ 内$/, "", terms);
+        gsub(/ 型$/, "", terms);
+        gsub(/ 間$/, "", terms);
+        gsub(/ 中$/, "", terms);
+        gsub(/ 毎$/, "", terms);
+        gsub(/ 等$/, "", terms);
         if ( terms != "") {
           terms_hash[terms] += 1;
         }
         terms = "";
       }
     }
-    if (must == "1") {  #名詞でも形容動詞は重要語としてとりこまない
-      terms = ""; must  = "0";
+    #名詞でも形容動詞は重要語としてとりこまない
+    if (must == "1") {
+      terms = "";
+        must  = "0";
     }
   } END {
     for (key in terms_hash) {
       print terms_hash[key] " " key;
     }
-  }' ) ;
+  }'`
   reset_get_word=0; 
   if [ -z "$comNounList" ] ;then exit ; fi
   if [ $DEBUG == "TRUE" ]; then echo "comNounList : "; echo "$comNounList" ; fi
@@ -268,7 +293,7 @@ function func_KutenKaigyo(){
   LC_ALL="" ;
   awk '{
     KAGK=0; MARK=0; MAHK=0;
-    gsub(/[[:blank:]]+/, "  ", $0);
+    gsub(/[[:blank:]]+/, "　", $0);
     num = split($0,sa,"");
     for ( a = 1; a <= num ; a++ ) {
       printf "%s" , sa[a] ;
@@ -288,8 +313,6 @@ function func_KutenKaigyo(){
     printf "\n" ;
   }' < /dev/stdin
 }
-#
-# $1を形態素解析 タイトル 本文を引数に取る
 # in  $TITLE # in  $DESCRIPTION # out $MECAB_OUT ;
 function termExtract.execMecab(){
   MECAB_OUT=$( echo "$1" | func_KutenKaigyo | nkf -We | "$MECAB" -b 4096 ) ;

@@ -260,6 +260,7 @@ function modify_noun_list(){
 #
 #================================================================
 #連接情報をDBに格納しておいて他の文書で使用された連接情報を重要度に反映する
+
 calc_imp_by_DB(){
   imp="1";
   count="0";
@@ -267,7 +268,10 @@ calc_imp_by_DB(){
     echo "average_rate is invalid value";
     exit;
   fi 
-  # 頻度をFrequency か TF のいずれでとるかを選択
+  #単語（複合語）の頻度一覧を取得する
+  #頻度をFrequency か TF のいずれでとるかを選択
+  #Frequency だと comnounlist そのまま
+  #TF なら　comnounlist をベースにして 包含関係にある名詞については頻度を加算。
   if [ "$frq" -eq 2 ];then
      calc_imp_by_HASH_TF;  
      NcontList="$awkTermExtractList" ;
@@ -275,8 +279,12 @@ calc_imp_by_DB(){
      NcontList="$comNounList";
   fi	  
   awkTermExtractList="";  
-  #名詞ごとに回す 
-  #「三振」「大学 野球」「秋季 高校 野球 大会」の単位でまわる
+  #NounList
+  #高校 野球 1
+  #早大 3
+  #秋季 野球 大会 2
+  #単語（複合語）ごとに回す 
+  #「高校 野球」「早大」「秋季 野球 大会」の単位でまわる
   while read n_count;do
     local freq=`echo "$n_count"|awk '{print $1;}'`;
     local cmp_noun=`echo "$n_count"|awk '{$1="";print $0;}'|sed -e "s|^ ||"`;
@@ -289,8 +297,9 @@ calc_imp_by_DB(){
       continue;
     fi
     cmp_noun_array=(`echo "$cmp_noun"`);
+    #複合語を単名詞に分解してループして重要度を算出する
+    #「秋季 野球 大会」だったら「秋季」「野球」「大会」の順で回る
     #単名詞ごとに回す
-    #秋季 高校 野球 大会 だったら「秋季」「高校」「野球」「大会」の４回まわる
     for noun in "${cmp_noun_array[@]}";do
       if cat "$IgnoreWordsFile"|grep "^$noun$">/dev/null;then
         continue;
@@ -298,8 +307,12 @@ calc_imp_by_DB(){
       if echo "$noun"|grep "^[0-9\.\,]*$" >/dev/null;then
         continue;
       fi
+      #stat_DB から 連接情報を取り出す。
+      #  uniq_pre total_pre uniq_post total_post
+      #  秋季 0 0 1 2
+      #  野球 1 2 1 2
+      #  大会 1 2 0 0
       stat_db_noun=`cat "$stat_db"|grep "^$noun,"`;
-      #連接DBから他の文書で使われた連接情報を取り出す
       if [ -n "$stat_db_noun" ];then
         uniq_pre=`echo "$stat_db_noun"|awk -F, '{print $2;}'`;
         total_pre=`echo "$stat_db_noun"|awk -F, '{print $3;}'`;
@@ -314,9 +327,20 @@ calc_imp_by_DB(){
       # 連接語の延べ数をとる場合
       if [ "$LR" = "1" ];then
         imp=$(($imp*$(($total_pre + 1))*$(($total_post + 1)))); 
+      #連接語の延数から重要度を出す
+      #秋季 1(imp) x ( 0(total_pre) + 1) x (2(total_post)+1)=3
+      #(imp 秋季は連接語の最初なので1からスタートする）
+      #野球 3(imp) x(2(total_pre)+1)x(2(total_post)+1)=27
+      #(imp 秋季で計算した結果3を引き継ぐ)
+      #大会 27(imp)x(2(total_pre)+1)x(0(total_post)+1)=81
+
       ## 連接語の異なり数をとる場合
       elif [ "$LR" = "2" ];then
         imp=$(($imp*$(($uniq_pre + 1))*$(($uniq_post + 1)))); 
+      #連接語の異なり数から重要度を出す
+      #秋季　1(imp)x(0(uniq_pre)+1)x(1(uniq_post)+1)=2
+      #野球 2(imp)x(1(uniq_pre)+1)x(1(uniq_post)+1)=8
+      #大会 8(imp)x(1(uniq_pre)+1)x(0(uniq_post)+1)=16
       fi
       count=$(($count + 1));
     done
@@ -324,6 +348,8 @@ calc_imp_by_DB(){
       count=1;
     fi
     # 相乗平均で重要度を出す
+    # 重要度 ^ (1 / (2 x average_rate x count(連接語のトークン数))
+    #frq =0 以外の場合、最後に 複合語のfrq をかける 「秋季 野球 大会」が今回の文書で例えば2回し用されていれば 2かける。
     imp=`awk 'BEGIN{
         average_rate="'$average_rate'"; 
         count="'$count'";
@@ -598,6 +624,11 @@ function calc_imp_by_HASH(){
   imp=1;        # 専門用語全体の重要度
   count=0;      # ループカウンター（専門用語中の単名詞数をカウント） 
   awkTermExtractList=$(echo "$comNounList" | $awk '
+#複合語ごとにループ
+#comNounList
+#高校 野球 1
+#早大 3
+#秋季 野球 大会 2
      BEGIN {
        #IgnoreWordsFile="'$IgnoreWordsFile'";
        IgnoreWordsStr="test" ; #配列初期化
@@ -634,19 +665,54 @@ function calc_imp_by_HASH(){
        #  }
        #}
        nounlength = length(NounList) ;
+#名詞のトークンが２個以上なければ連接情報がないのでスキップする
        if( nounlength < 2 ){ next ; } 
+#複合語を単名詞に分解してループして重要度を算出する
+#「秋季 野球 大会」だったら「秋季」「野球」の順で回る
+#１個後ろの単語とくっつけて連接語とし連接情報を見る
+#「秋季 野球」「野球 大会」が連接語
        for ( i = 1; i < nounlength; i++){
           noun_0=NounList[i] ;
+#noun_0 1ループ目「秋季」2ループ目「野球」
           noun_1=NounList[i+1] ;
+#noun_1 1ループ目「野球」2ループ目「大会」
           comb_key=NounList[i]" "NounList[i+1] ;
+#comb_key 1ループ目「秋季 野球」2ループ目「野球 大会」
           if ( stat_pre[noun_0] == "" ){ stat_pre[noun_0] = 0; }
           if ( stat_post[noun_1] == "" ){ stat_post[noun_1] = 0; }
+#LR=1の場合
+#連接語の延数から重要度を出す
+#DBでいう total_pre total_post に該当する
           if ( LR == 1 ){  
             stat_pre[noun_0]=stat_pre[noun_0] + $freqc ;
             stat_post[noun_1]=stat_post[noun_1] + $freqc ;
+#「秋季 野球」
+# stat{秋季}[0] +2（秋季 野球 大会の出現頻度)
+# stat{野球}[1] +2（秋季 野球 大会の出現頻度)
+# 「野球 大会」
+# stat{野球}[0] +2 （秋季 野球 大会の出現頻度)
+# stat{大会}[1] +2 （秋季 野球 大会の出現頻度)
+#
+# stat{秋季}[2,0]
+# stat{野球}[2,2]
+# stat{大会}[0,2]
+
+#LR=2の場合
+#連接語の異なり数から重要度を出す
+#DBでいう uniq_pre uniq_postに該当する
+#first_comb が 1　の場合に +1 する
           } else if ( LR == 2 && first_conb ) {
             stat_pre[noun_0]=stat_pre[noun_0] + 1 ;
             stat_post[noun_1]=stat_post[noun_1] + 1 ;
+#「秋季 野球」
+# stat{秋季}[0] +0 or 1（「秋季 野球」が初登場の場合 +1)
+# stat{野球}[1] +0 or 1（「秋季 野球」が初登場の場合 +1)
+# 「野球 大会」
+# stat{野球}[0] +0 or 1 （「野球 大会」が初登場の場合 +1)
+# stat{大会}[1] +0 or 1 （「野球 大会」が初登場の場合 +1)
+# stat{秋季}[1,0]
+# stat{野球}[1,1]
+# stat{大会}[0,1]
           } 
        } 
     }END{
@@ -670,13 +736,31 @@ function calc_imp_by_HASH(){
            #        delete NounList[i] ;
            #     }
            #  }
+#重要度を出す
+#pre と post の用語の使い方がDB と逆な気がスル
+#逆でも変数名が違うぐらいの違いしかないので結果は同じ
+
+#LR=1の場合
+#秋季 1(imp) x ( 2(pre) + 1) x (0(post)+1)=3
+#(imp 秋季は連接語の最初なので1からスタートする）
+#野球 3(imp) x(2(pre)+1)x(2(post)+1)=27
+#(imp 秋季で計算した結果3を引き継ぐ)
+#大会 27(imp)x(0(pre)+1)x(2(total_post)+1)=81
+
+#LR=2の場合
+#秋季　1(imp)x(1(pre)+1)x(0(post)+1)=2
+#野球 2(imp)x(1(pre)+1)x(1(post)+1)=8
+#大会 8(imp)x(0(pre)+1)x(1(post)+1)=16
              word = NounList[i] ;
              pre = stat_pre[word] ;
              post = stat_post[word] ;
              imp = imp * (pre + 1) * (post + 1);
              count++;
           } 
-          if ( frq != 0 ){
+#相乗平均で重要度を出す
+#　重要度 ^ (1 / (2 x average_rate x count(連接語のトークン数))
+#  frq =0 以外の場合、最後に 複合語のfrq をかける 「秋季 野球 大会」の場合は2かける 
+         if ( frq != 0 ){
              imp = imp ^ (1 / (2 * average_rate * count));
              imp = imp * freqc;
           } else {
@@ -740,9 +824,21 @@ function termExtract.calcImp(){
     elif [ $LR -eq 3 ];then
       calc_imp_by_HASH_PP;
       awkTermExtractList_LRPP="$awkTermExtractList" ;
-    #学習機能（連接統計DB）を使ってのLR重要度計算
+#学習機能（連接統計DB）を使ってのLR重要度計算
+#LR=1 連接語の延数から重要度を出す
+#LR=2 連接語の異なり数から重要度を出す
+#frq=0 名詞の出現頻度をスコアリングに使用しない。 
+#frq=1 Frequencyを利用する。
+#frq=2 TFを利用する。
     elif [ "$stat_mode" = "1" ];then
       calc_imp_by_DB;
+#文章中の連接情報を使ってのLR重要度計算
+#ロジック的にはcalc_imp_by_DBと同じ。使用する連接情報が文章中のものに限定される点が異なる。
+#LR=1 連接語の延数から重要度を出す
+#LR=2 連接語の異なり数から重要度を出す
+#frq=0 名詞の出現頻度をスコアリングに使用しない。 
+#frq=1 Frequencyを利用する。
+#frq=2 TFを利用する。
     elif [ $LR -eq 1 -o $LR -eq 2 ]; then
       calc_imp_by_HASH;  #LR=1; frq=1;   #default
       awkTermExtractList_LRTOTAL="$awkTermExtractList" ;

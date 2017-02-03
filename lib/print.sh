@@ -41,8 +41,8 @@ $DOTMAP
  }
 EOS
 
-	dot -Tsvg -o graph.svg digraph.dot ;	
-  if [ $DEBUG == "TRUE" ]; then cat digraph.dot; fi
+	dot -Tsvg -o graph.svg graph.dot ;	
+  if [ $DEBUG == "TRUE" ]; then cat graph.dot; fi
 }
 #
 #<> func_print_html
@@ -52,7 +52,7 @@ function print.HTML(){
   IS_HAS_TABLE_FIN=$( echo -e "$IS_TABLE_FIN\n$HAS_TABLE_FIN" | LANG=C sort -s -k1 -u | sed "s/<BR>/\\n/g" ) ;
   DOTMAP=$( echo -e "$IS_HAS_TABLE_FIN\n$IS_HAS_TABLE" )  ;
 
-cat <<- EOS > index.html 
+cat <<- EOS > graph.html 
 <html><head><meta charset="utf-8"><body>
 <script type="text/vnd.graphviz" id="cluster">
   digraph G {

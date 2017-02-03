@@ -26,7 +26,7 @@ EOF
 function print.SVG(){
   IS_HAS_TABLE_FIN=$( echo -e "$IS_TABLE_FIN\n$HAS_TABLE_FIN" | LANG=C sort -s -k1 -u | sed "s/<BR>/\\n/g" ) ;
   DOTMAP=$( echo -e "$IS_HAS_TABLE_FIN\n$IS_HAS_TABLE" )  ;
-cat <<- EOS > digraph.dot
+cat <<- EOS > graph.dot
   digraph G {
     size="500, 500";
     node [fontname=mincho fontsize=14 shape=plaintext,width=.1,height=.1 ];

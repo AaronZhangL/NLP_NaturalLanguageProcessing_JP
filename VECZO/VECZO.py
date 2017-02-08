@@ -4,11 +4,12 @@
 from gensim import models
 import sys
 import codecs
+my_model = sys.argv[1]
 
 sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 sys.stdin = codecs.getreader('utf_8')(sys.stdin)
 
-model_loaded = models.Doc2Vec.load('my_model.doc2vec')
+model_loaded = models.Doc2Vec.load(my_model)
 
 #標準入力から文章のキーワードを取得
 input_line = sys.stdin.readline()

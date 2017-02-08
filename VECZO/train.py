@@ -4,6 +4,9 @@
 from gensim import models
 import sys
 import codecs
+#print(len(sys.argv)) # 引数の要素数
+#print(sys.argv)      # 引数の内容（配列）
+my_model = sys.argv[1]
 
 sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 sys.stdin = codecs.getreader('utf_8')(sys.stdin)
@@ -30,7 +33,7 @@ for item in article_list:
 #sentence3 = models.doc2vec.LabeledSentence(
 #    words=[u'魚', u'泳ぐ', u'海'], tags=["SENT_3"])
 #sentences = [sentence, sentence1, sentence2, sentence3]
-print sentences
+#print sentences
 
 class LabeledLineSentence(object):
     def __init__(self, filename):
@@ -47,8 +50,8 @@ for epoch in range(10):
     model.alpha -= 0.002  # decrease the learning rate`
     model.min_alpha = model.alpha  # fix the learning rate, no decay
 
-model.save("my_model.doc2vec")
-model_loaded = models.Doc2Vec.load('my_model.doc2vec')
+model.save(my_model)
+#model_loaded = models.Doc2Vec.load(my_model)
 
 # ある文書に似ている文書を表示
 #print ("SENT_0")
@@ -63,7 +66,7 @@ model_loaded = models.Doc2Vec.load('my_model.doc2vec')
 
 #print (model.most_similar(positive=[u"猫", u"魚"]))
 #
-print (model.most_similar(positive=[u"魚"]))
+#print (model.most_similar(positive=[u"魚"]))
 #test_1 = model.similarity(u"猫", u"魚")
 #print(test_1)
 

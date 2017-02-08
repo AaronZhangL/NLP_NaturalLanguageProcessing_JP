@@ -5,6 +5,8 @@ echo "title=早大３連覇　斎藤が１５奪三振、初完封　東京六�
 echo "#!/bin/bash" > run.sh ;
     cat README \
         config \
+				lib/makeGoitaikei.sh \
+				lib/makeNewspackDB.sh \
         lib/parse.sh \
         lib/termExtract.sh \
         lib/calcImp.sh \

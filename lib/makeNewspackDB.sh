@@ -7,6 +7,11 @@
 #	分かち書き：本文からmecab -Owakati を行った結果を格納
 #	記事ごとに分類されたカテゴリごとにファイル出力
 #
+# NEWSPACKDB : 全量ファイル
+# W_NEWSPACKDB : 全量のわかちがきファイル
+# カテゴリ名 : カテゴリごとに全量ファイル
+# W_カテゴリ名 : カテゴリごとのわかちがきファイル
+#
 #########################################################################
 function NPstep1(){
 :> NEWSPACK_DB.step1 ;
@@ -121,6 +126,7 @@ function NPstep4(){
 					-e "s|-front_line|-エンタメ・フロントライン|g" > NEWSPACK_DB.step4 ;
 }
 #
+# わかちがきを追加
 function NPstep5(){
 	:> NEWSPACK_DB.step5 ;
   GT=2453774;
@@ -136,31 +142,53 @@ function NPstep5(){
 	#mv NEWSPACK_DB.step5 NEWSPACKDB ;
 }
 #
+# カテゴリごとにファイル出力
 function NPstep6(){
-  GT=2454024;
+  GT=2454026;
 	COUNT=0;
-	mkdir -p NEWSPACKDB ;
-  /bin/rm -fr NEWSPACKDB/* ;
-	cat NEWSPACK_DB.step5 | while read line; do
+	mkdir -p newspack ;
+  /bin/rm -fr newspack/* ;
+	:> W_NEWSPACKDB ;
+	cat NEWSPACKDB | while read line; do
+		WAKATI=$( echo "$line" | sed -e "s/^.*<WAKATI>//g" -e "s/<\/WAKATI>.*$//g" );
+		echo "$WAKATI" >> newspack/W_NEWSPACKDB ;
 		echo "$line" | sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" -e "s/#/\n/g" | grep -v "^$" | while read line2; do
-			WAKATI=$( echo "$line" | sed -e "s/^.*<WAKATI>//g" -e "s/<\/WAKATI>.*$//g" );
 			OUT_CATEGORY=$( echo "$line2" | sed -e "s/-.*$//g" ) ;	
-			if [ ! -f "NEWSPACKDB/$OUT_CATEGORY" ] && [ ! -z "NEWSPACKDB/$OUT_CATEGORY" ]; then
-				:> "NEWSPACKDB/$OUT_CATEGORY" ;
+			if [ ! -f "newspack/W_$OUT_CATEGORY" ] && [ ! -z "newspack/W_$OUT_CATEGORY" ]; then
+				:> "newspack/W_$OUT_CATEGORY" ;
 			fi
-			echo "$WAKATI" >> "NEWSPACKDB/$OUT_CATEGORY" ;			
+			echo "$WAKATI" >> "newspack/W_${OUT_CATEGORY}" ;			
+			#
+			if [ ! -f "newspack/$OUT_CATEGORY" ] && [ ! -z "newspack/$OUT_CATEGORY" ]; then
+				:> "newspack/$OUT_CATEGORY" ;
+			fi
+			echo "$line" >> "newspack/${OUT_CATEGORY}" ;
 		done
-	echo "$((COUNT++))/$GT";
+		echo "$((COUNT++))/$GT";
 	done
-  wc -l NEWSPACKDB/* ;
-
-#全国の放送局幹部を呼び出し要請。参院選報道で総務省。当選確実の放送「慎重かつ正確に」。
-#発生直後、４人が意識不明。山口県美祢市のホテルＣＯ中毒事故。経産省、専門家調査チーム派遣へ。
-#米政府高官、メルケル独首相を含む外国指導者約３５人の盗聴認め る。オバマ大統領は知らずと米紙。
-#気象庁発表earthquake
-#気象庁発表tsunami
-#気象庁発表volcano
-#震源情報_early_warning
+  /bin/cp NEWSPACKDB newspack/ ;
+}
+#
+# NEWSPACKDBからわかちがきを除去
+function NPstep7(){
+  GT=2454026 ;
+	COUNT=0;
+	:> NEWSPACKDB.in ;
+	cat NEWSPACKDB | while read line; do
+		echo "$line" | sed -e "s/<WAKATI>.*<\/WAKATI>//g" >> NEWSPACKDB.in ;
+		echo "$(( COUNT++)) /$GT" ;
+	done 
+	/bin/mv NEWSPACKDB.in NEWSPACKDB ;
+}
+#
+function NPstep8(){
+  GT=2454026 ;
+	COUNT=0;
+	:> NEWSPACKDB.in ;
+	cat NEWSPACKDB | while read line; do
+		echo "$line" | sed -e "s/<TTL>/<TITLE>/g" -e "s/<\/STTL>/<\/TITLE>/g" -e "s/<\/TTL><STTL>/  /g" >> NEWSPACKDB.in ;
+		echo "$(( COUNT++)) /$GT" ;
+	done
 }
 #
 #NPstep1 ;
@@ -170,5 +198,7 @@ function NPstep6(){
 #NPstep5 ;
 #NPstep6 ;
 #NPstep7 ;
+#NPstep8 ;
+#
 #exit ;
 #

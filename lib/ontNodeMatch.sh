@@ -6,32 +6,26 @@ function ontNodeMatch(){
   while read key;do
     #echo "key:$key";
     #<KEY>早大<SCORE>7.00</SCORE></KEY>
-    num=`echo "$key"|sed -e "s|.*<KEY>||" -e "s|<SCORE>.*||"`;
-    score=`echo "$key"|sed -e "s|.*<SCORE>||" -e "s|</SCORE>.*||"`;
-    goimatch=`cat "$GOITAIKEI" |grep -e ">$num " -e " $num " -e " $num<"`;
-    echo "num:$num";
-
-  
-
+    num=`echo "$key"|sed -e "s|^.*<KEY>||" -e "s|<SCORE>.*$||"`;
+    score=`echo "$key"|sed -e "s|^.*<SCORE>||" -e "s|</SCORE>.*$||"`;
+    goimatch=`cat "$GOITAIKEI" |grep -e ">$num " -e " $num " -e " $num<"|grep -v "^$"`;
     while read goiline;do
       if [ -z "$goiline" ];then
         continue;
       fi
-      goi=`echo "$goiline"|sed -e "s|.*<GOI>||" -e "s|</GOI>.*||"`;
-      no=`echo "$goiline"|sed -e "s|.*<NO>||" -e "s|</NO>.*||"`;
-      keiro=`echo "$goiline"|sed -e "s|.*<KEIRO>||" -e "s|</KEIRO>.*||"`;
+      goi=`echo "$goiline"|sed -e "s|^.*<GOI>||" -e "s|</GOI>.*$||"`;
+      no=`echo "$goiline"|sed -e "s|^.*<NO>||" -e "s|</NO>.*$||"`;
+      keiro=`echo "$goiline"|sed -e "s|^.*<KEIRO>||" -e "s|</KEIRO>.*$||"`;
+      deep=`echo "$keiro"|awk -F- '{print NF}'`
       #とりあえずファイルにアウトプット後でawkとかにする
       ontgrep=`cat "$TMP/ontNOde.tmp" |grep "^$goi,"`;
-      goiscore="$no";
-      
+      goiscore=`echo "1 * $deep * $score" | bc`;
       if [ -n "$ontgrep" ];then
-        goissum=`echo "$ontgrep"|awk -F, '{print $2;}'`;
-        goiscore=$(echo "$goisum"+"$goiscore" | bc); 
-      else
-        echo "$goi,$goiscore" > "$TMP/ontNOde.tmp.tmp";
+        goisum=`echo "$ontgrep"|awk -F, '{print $2;}'`;
+        goiscore=`echo "$goisum + $goiscore" | bc`; 
       fi
-      cat "$TMP/ontNOde.tmp.tmp" 
-      cat "$TMP/ontNOde.tmp" |grep -v "^$goi," > "$TMP/ontNOde.tmp.tmp";
+      echo "$goi,$goiscore" > "$TMP/ontNOde.tmp.tmp";
+      cat "$TMP/ontNOde.tmp" |grep -v "^$goi," >> "$TMP/ontNOde.tmp.tmp";
       /bin/mv  "$TMP/ontNOde.tmp.tmp" "$TMP/ontNOde.tmp";
     done < <(echo "$goimatch")
 
@@ -39,7 +33,7 @@ function ontNodeMatch(){
 
 
   done < <(echo "$KEYS_RESULT_LINE"|sed -e "s|<KEY>|\n<KEY>|g"|grep "<KEY>") 
-  cat "$TMP/ontNOde.tmp";
+  cat "$TMP/ontNOde.tmp"|sort -t, -k2 -nr;
 
 #KEYS_RESULT_LINE:<KEYS><KEY>早大<SCORE>7.00</SCORE></KEY><KEY>大学野球<SCORE>6.24</SCORE></KEY><KEY>斎藤<SCORE>6.00</SCORE></KEY><KEY>連覇<SCORE>4.00</SCORE></KEY><KEY>東京<SCORE>4.00</SCORE></KEY><KEY>完封<SCORE>4.00</SCORE></KEY><KEY>三振<SCORE>4.00</SCORE></KEY><KEY>慶大<SCORE>3.00</SCORE></KEY><KEY>大学野球秋季リーグ<SCORE>1.83</SCORE></KEY><KEY>千葉経大付<SCORE>1.68</SCORE></KEY><KEY>リーグ戦<SCORE>1.68</SCORE></KEY><KEY>明治神宮大会<SCORE>1.59</SCORE></KEY><KEY>エース加藤幹<SCORE>1.59</SCORE></KEY><KEY>適時打<SCORE>1.41</SCORE></KEY><KEY>最終週<SCORE>1.41</SCORE></KEY><KEY>早稲田実<SCORE>1.41</SCORE></KEY><KEY>勝ち点<SCORE>1.41</SCORE></KEY></KEYS>
   exit;

@@ -8,11 +8,15 @@ function ontNodeMatch(){
     #<KEY>早大<SCORE>7.00</SCORE></KEY>
     num=`echo "$key"|sed -e "s|.*<KEY>||" -e "s|<SCORE>.*||"`;
     score=`echo "$key"|sed -e "s|.*<SCORE>||" -e "s|</SCORE>.*||"`;
-    #echo "num:$num score:$score";
     goimatch=`cat "$GOITAIKEI" |grep -e ">$num " -e " $num " -e " $num<"`;
+    echo "num:$num";
+
+  
 
     while read goiline;do
-
+      if [ -z "$goiline" ];then
+        continue;
+      fi
       goi=`echo "$goiline"|sed -e "s|.*<GOI>||" -e "s|</GOI>.*||"`;
       no=`echo "$goiline"|sed -e "s|.*<NO>||" -e "s|</NO>.*||"`;
       keiro=`echo "$goiline"|sed -e "s|.*<KEIRO>||" -e "s|</KEIRO>.*||"`;

@@ -189,6 +189,7 @@ function NPstep8(){
 		echo "$line" | sed -e "s/<TTL>/<TITLE>/g" -e "s/<\/STTL>/<\/TITLE>/g" -e "s/<\/TTL><STTL>/  /g" >> NEWSPACKDB.in ;
 		echo "$(( COUNT++)) /$GT" ;
 	done
+	/bin/mv NEWSPACKDB.in NEWSPACKDB ;
 }
 #
 #NPstep1 ;

@@ -126,6 +126,7 @@ function NPstep4(){
 					-e "s|-front_line|-エンタメ・フロントライン|g" > NEWSPACK_DB.step4 ;
 }
 #
+# わかちがきを追加
 function NPstep5(){
 	:> NEWSPACK_DB.step5 ;
   GT=2453774;
@@ -141,6 +142,7 @@ function NPstep5(){
 	#mv NEWSPACK_DB.step5 NEWSPACKDB ;
 }
 #
+# カテゴリごとにファイル出力
 function NPstep6(){
   GT=2454026;
 	COUNT=0;
@@ -167,6 +169,27 @@ function NPstep6(){
   /bin/cp NEWSPACKDB newspack/ ;
 }
 #
+# NEWSPACKDBからわかちがきを除去
+function NPstep7(){
+  GT=2454026 ;
+	COUNT=0;
+	:> NEWSPACKDB.in ;
+	cat NEWSPACKDB | while read line; do
+		echo "$line" | sed -e "s/<WAKATI>.*<\/WAKATI>//g" >> NEWSPACKDB.in ;
+		echo "$(( COUNT++)) /$GT" ;
+	done 
+	/bin/mv NEWSPACKDB.in NEWSPACKDB ;
+}
+#
+function NPstep8(){
+  GT=2454026 ;
+	COUNT=0;
+	:> NEWSPACKDB.in ;
+	cat NEWSPACKDB | while read line; do
+		echo "$line" | sed -e "s/<TTL>/<TITLE>/g" -e "s/<\/STTL>/<\/TITLE>/g" -e "s/<\/TTL><STTL>/  /g" >> NEWSPACKDB.in ;
+		echo "$(( COUNT++)) /$GT" ;
+	done
+}
 #
 #NPstep1 ;
 #NPstep2 ;
@@ -174,6 +197,8 @@ function NPstep6(){
 #NPstep4 ;
 #NPstep5 ;
 #NPstep6 ;
+#NPstep7 ;
+#NPstep8 ;
 #
 #exit ;
 #

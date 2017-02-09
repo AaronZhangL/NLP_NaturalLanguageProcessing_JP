@@ -185,4 +185,5 @@
   export EXOPSRC=$exopdir/src
   export EXOPPOL=$exopdir/pol
   export EXOPTYP=$exopdir/typ
-
+  #語彙体型ファイル
+  GOITAIKEI="${LIBDIR}/GOITAIKEI";

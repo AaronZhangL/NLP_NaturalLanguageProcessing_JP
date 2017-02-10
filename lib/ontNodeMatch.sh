@@ -10,8 +10,7 @@ function ontNodeMatch(){
   NODE_RESULT_LINE=$( echo "$KEYS_RESULT_LINE" | sed -e "s|<KEY>|\n<KEY>|g" | grep "<KEY>" | while read line;do
     num=$( echo "$line"|sed -e "s|^.*<KEY>||g" -e "s|<SCORE>.*$||g" ) ;
     score=$( echo "$line" | sed -e "s|^.*<SCORE>||g" -e "s|</SCORE>.*$||g" ) ;
-    goimatch=$( cat "$GOITAIKEI" | grep -e ">$num " -e " $num " -e " $num<" | grep -v "^$" ) ;
-    echo "$goimatch" | while read line2;do
+    cat "$GOITAIKEI" | grep -e ">$num " -e " $num " -e " $num<" | grep -v "^$" | while read line2;do
       goi=$( echo "$line2" | sed -e "s|^.*<GOI>||g" -e "s|</GOI>.*$||g" ) ;
       no=$( echo "$line2" | sed -e "s|^.*<NO>||" -e "s|</NO>.*$||" );
       deep=$( echo "$line2" | sed -e "s|^.*<KEIRO>||g" -e "s|</KEIRO>.*$||g" | awk -F- '{ print NF; }' ) ;

@@ -13,16 +13,15 @@ function ontNodeMatch(){
     goimatch=$( cat "$GOITAIKEI" | grep -e ">$num " -e " $num " -e " $num<" | grep -v "^$" ) ;
     echo "$goimatch" | while read line2;do
       goi=$( echo "$line2" | sed -e "s|^.*<GOI>||g" -e "s|</GOI>.*$||g" ) ;
+      no=$( echo "$line2" | sed -e "s|^.*<NO>||" -e "s|</NO>.*$||" );
       deep=$( echo "$line2" | sed -e "s|^.*<KEIRO>||g" -e "s|</KEIRO>.*$||g" | awk -F- '{ print NF; }' ) ;
       goiscore=$( echo "1 * $deep * $score" | bc ) ;
 			if [ ! -z "$goi" ] && [ ! -z "$goiscore" ]; then
-      	 echo "$goi,$goiscore"
+      	 echo "$no,$goi,$goiscore"
 			fi
 			echo "$ontNode" | grep -v "^$goi,"
     done 
-  done | grep -v "^$" |  awk -F, '{ a[$1]+=$2} END { for(k in a) printf "%s,%.2f\n", k, a[k];}' | sort -t, -k2 -nr | sed -e "s/^/<N>/g" -e "s/$/<\/S><\/N>/g" -e "s/,/<S>/g" | tr -d '\n' | sed -e "s/^/<NODE>/g" -e "s/$/<\/NODE>/g" ) ;
-
-
+  done | grep -v "^$"  |  awk -F, '{ a[$2]+=$3; b[$2]=$1 } END { for(k in a) printf "%s,%s,%.2f\n", b[k], k, a[k] }'| sort -t, -k3 -nr | awk -F, '{ print "<ID>" $1 "</ID><N>" $2 "</N><S>" $3 "</S></N>" ; }' | tr -d '\n' | sed -e "s/^/<NODE>/g" -e "s/$/<\/NODE>/g" ) ;
 
 
 

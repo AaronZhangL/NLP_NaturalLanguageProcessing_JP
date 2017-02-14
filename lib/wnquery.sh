@@ -1,6 +1,8 @@
 #!/bin/bash
 #わーどネット sqlite3メソッド
 searchword=$1;
+searchlink=$2;
+searchlang=$3;
 #
 #DB="wnjpn-1.1_and_synonyms-1.0.db";
 DB="wnjpn.db";
@@ -78,31 +80,21 @@ function Def(){
   echo "$rst";
 }
 function Word(){
-  local word="$1";
+  local synset="$1";
   local lang="jpn";
   if [ -n "$2" ];then
     lang="$2";  
   fi
   rst=`sqlite3 "$DB" "SELECT lemma FROM word JOIN sense ON word.wordid = sense.wordid
-              WHERE synset     ='$word' 
+              WHERE synset     ='$synset' 
                 AND sense.lang = '$lang'"`;
   echo "$rst";
 }
-function Synset(){
-  local word="$1";
-  local lang="jpn";
-  if [ -n "$2" ];then
-    lang="$2";  
-  fi
-  rst=`sqlite3 "$DB" "SELECT synset FROM word LEFT JOIN sense ON word.wordid = sense.wordid WHERE lemma = '$word' AND sense.lang = '$lang'"`;
-  echo "$rst";
-}
-
 main(){
   #キーワードのIDを取得する
   echo "##################";
   echo "検索ワード:$searchword";
-  synsets=`Synset "$searchword"` ;
+  synsets=`Synset "$searchword" "$searchlang"` ;
   #IDから品詞を取得する
   #$pos can take the left side values of the following table.
   #
@@ -153,5 +145,110 @@ main(){
 #  Synonym "$wordID";
   echo "##################";
 }
-main;
+function Synset(){
+  local word="$1";
+  local lang="jpn";
+  if [ -n "$2" ];then
+    lang="$2";  
+  fi
+  rst=`sqlite3 "$DB" "SELECT synset FROM word LEFT JOIN sense ON word.wordid = sense.wordid WHERE lemma = '$word' AND sense.lang = '$lang'"`;
+  echo "$rst";
+}
+function getWord(){
+  local wordid="$1";
+  rst=`sqlite3 "$DB" "select * from word where wordid='$wordid'"`;
+  echo "$rst";
+}
+function getSense(){
+  local synset="$1";
+  local lang="jpn";
+  if [ -n "$2" ];then
+    lang="$2";  
+  fi
+  rst=`sqlite3 "$DB" "select * from sense where synset='$synset' and lang='$lang'"`;
+  if [ -z "$rst" ];then
+    rst=`sqlite3 "$DB" "select * from sense where synset='$synset' and lang='eng'"`;
+  fi
+  echo "$rst";
+}
+function getSenses(){
+  local wordid="$1";
+  rst=`sqlite3 "$DB" "select * from sense where wordid='$wordid'"`;
+  echo "$rst";
+}
+function getWords(){
+  local word="$1";
+  rst=`sqlite3 "$DB" "select * from word where lemma='$word'"`;
+  echo "$rst";
+}
+function getSynset(){
+  local synset="$1";
+  rst=`sqlite3 "$DB" "select * from synset where synset='$synset'"`;
+  echo "$rst";
+}
+function  getSynLinks(){
+  local sense="$1";
+  local synset=`echo "$sense"|awk -F\| '{print $1;}'`
+  local link="$2";
+  rst=`sqlite3 "$DB" "select * from synlink where synset1='$synset' and link='$link'"`;
+  echo "$rst";
+}
+#def getSense(synset, lang='jpn'):
+#  cur = conn.execute("select * from sense where synset=? and lang=?",
+#      (synset,lang))
+#  row = cur.fetchone()
+#  if row:
+#    return Sense(*row)
+#  else:
+#    return None
+#def getSynLinksRecursive(senses, link, lang='jpn', _depth=0):
+#  for sense in senses:
+#    synLinks = getSynLinks(sense, link)
+#    if synLinks:
+#      print '  '*_depth + getWord(sense.wordid).lemma, getSynset(sense.synset).name
+#    _senses = []
+#    for synLink in synLinks:
+#      sense = getSense(synLink.synset2, lang)
+#      if sense:
+#        _senses.append(sense)
+#    getSynLinksRecursive(_senses, link, lang, _depth+1)
+function getSynLinksRecursive(){
+  local sense=$1;
+  local link=$2;
+  local lang="jpn";
+  if [ -n "$3" ];then
+    lang="$3";  
+  fi
+  local depth=$4;
+  synLinks=`getSynLinks "$sense" "$link"`;
+  if [ -z "$synLinks" ];then
+    continue;
+  fi
+    local space="";
+    for i in `seq 0 $depth`;do
+      space="$space ";
+    done
+    local wordid=`echo "$sense"|awk -F\| '{print $2;}'`;
+    local lemma=`getWord "$wordid"|awk -F\| '{print $3;}'`;
+    local synset=`echo "$sense"|awk -F\| '{print $1;}'`;
+    local name=`getSynset "$synset"|awk -F\| '{print $3;}'`
+    echo "$space$lemma $name";
+  _senses=`echo "$synLinks"|awk -F\| '{print $2;}'|while read synset2;do
+    getSense "$synset2" "$lang";
+    
+  done|grep -v ^$`;
+  depth=$(($depth + 1));
+  echo "$_senses"|while read _sense;do
+    getSynLinksRecursive "$_sense" "$searchlink" "$searchlang" "$depth"; 
+  done
+}
+main2(){
+  words=`getWords "$searchword"|awk -F\| '{print $1;}'`;
+  if [ -n "$words" ];then
+    getSenses "$words"|while read sense;do
+      getSynLinksRecursive "$sense" "$searchlink" "$searchlang" "0";
+    done
+  fi
+}
+main2;
 exit;

@@ -129,11 +129,21 @@ main(){
   #IDからRelを取得する
     echo "【上位語】";
     Rel "$line" "hype"|while read line2;do
-        Word "$line2";
+        re=`Word "$line2";`
+        if [ -n "$re" ];then
+          echo "$re";
+        else
+          Word "$line2" "eng";
+        fi  
     done;
     echo "【下位語】";
     Rel "$line" "hypo"|while read line2;do
-        Word "$line2";
+        re=`Word "$line2";`
+        if [ -n "$re" ];then
+          echo "$re";
+        else
+          Word "$line2" "eng";
+        fi  
     done;
 
   echo "##################";

@@ -1,5 +1,6 @@
 #!/opt/local/bin/perl
 ##!/usr/bin/perl
+use Data::Dumper;
 
 #インストール
 #sudo cpan DBI
@@ -38,15 +39,48 @@ use Lingua::JA::WordNet;
 my $jp = $ARGV[0];
 my $wn = Lingua::JA::WordNet->new;
 my @synsets = $wn->Synset("$jp");
-my @hypes   = $wn->Rel($synsets[0], 'hype');
-&printword(\@hypes,"上位語");
+print "################\n";
+print "【検索キーワード】:$jp\n";
+foreach my $syn(@synsets){
+  #同じid を持つ言葉　シノニムとは違うのか？
+  print "同じid を持つ言葉　シノニムとは違うのか？\n";
+  my @wd = $wn->Word( $syn);
+  print Dumper @wd;
+  #辞書の意味
+  print "【定義文】:";
+  my @defs = $wn->Def($syn);
+  print Dumper @defs;
+  my @exs = $wn->Ex($syn); 
+  print "【例文】:";
+  print Dumper @exs;
+}
+foreach my $syn(@synsets){
+  my @hypes   = $wn->Rel($syn, 'hype');
+  &printword(\@hypes,"【上位語】:");
+}
   my $wordID   = $wn->WordID("$jp", 'n');
   my @synonyms = $wn->Synonym($wordID);
 #   
-   print "シノニム:@synonyms\n";
-my @hypos   = $wn->Rel($synsets[0], 'hypo');
-&printword(\@hypos,"下位語");
+   print "【シノニム】:@synonyms\n";
+foreach my $syn(@synsets){
+  my @hypos   = $wn->Rel($syn, 'hypo');
+  &printword(\@hypos,"【下位語】:");
+}
+print "################\n";
  
+#pos は品詞を返す
+#$pos = $wn->Pos($synset)
+#a|adjective
+#r|adverb
+#n|noun
+#v|verb
+#a|形容詞
+#r|副詞
+#n|名詞
+#v|動詞
+
+#my $allsynsets_arrayref = $wn->AllSynsets();
+#print Dumper $allsynsets_arrayref;
 # -> レスリング
 #  
   # Synonym method can access to Japanese WordNet Synonyms Database.

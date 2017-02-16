@@ -9,21 +9,25 @@ main(){
 
 	# 検索語からシノニムを取得
   word=$( echo "$searchword" | sed -e "s| |_|g" );
-  wordID=$( sqlite3 "$DB"  \
-							"SELECT wordid FROM word
-              	WHERE lemma = '$word' 
-              	AND pos   = 'n'
-              	AND lang  = '$lang'") ;
+  wordID=$( sqlite3 "$DB" \
+							"SELECT wordid FROM word \ 
+								WHERE lemma = '$word' \
+								AND pos = 'n' \ 
+								AND lang  = '$lang'") ;
+	echo "wordID: $wordID";
   SYNONYM=$( sqlite3 "$DB"  \
-							"SELECT lemma FROM word JOIN wordlink ON \
-								word.wordid = wordlink.wordid2
-              	WHERE wordid1 = '$wordID' 
-              	AND link = 'syns'" );
+								"SELECT lemma FROM word \
+								JOIN wordlink ON \
+								word.wordid = wordlink.wordid2  \
+								WHERE wordid1 = '$wordID'  \
+								AND link = 'syns'" );
 	echo "SYNONYM : $SYNONYM" ;
 
 	# 検索語からSYNSETSを取得
   SYNSETS=$( sqlite3 "$DB"  \
-					"SELECT synset FROM word LEFT JOIN sense ON  \
+					"SELECT synset  \
+						FROM word LEFT \
+						JOIN sense ON  \
 						word.wordid = sense.wordid  \
 						WHERE lemma = '$searchword'  \
 						AND sense.lang = '$lang'" );
@@ -32,7 +36,9 @@ main(){
   #SYNSETSからキーワードを取得する
   echo "$SYNSETS" | head -n1 | while read id; do
 	WORD=$( sqlite3 "$DB"  \
-						"SELECT lemma FROM word JOIN sense ON  \
+						"SELECT lemma \
+							FROM word  \
+							JOIN sense ON  \
 							word.wordid = sense.wordid  \
 							WHERE synset ='$id'  \
 							AND sense.lang = '$lang'" );
@@ -60,23 +66,22 @@ main(){
 	echo "HINSHI : $HINSHI" ;
 
   #IDからRelを取得する
-  JOUIGO=$( sqlite3 "$DB" "SELECT synset2 FROM synlink \
-              WHERE synset1 = '$id'  \
-               AND link = hype" |  \
-    #relから上位語を取得する
-		while read line2; do 
-			re= $(sqlite3 "$DB"  \
-						"SELECT lemma FROM word JOIN sense ON  \
-							word.wordid = sense.wordid WHERE  \
-							synset = '$line2'  \
+  JOUIGO=$( sqlite3 "$DB" 
+						"SELECT synset2 FROM synlink 
+              WHERE synset1 = '$id'  
+              AND link = 'hype'" | while read line2; do 
+			re= $(sqlite3 "$DB"  
+						"SELECT lemma FROM word JOIN sense ON  
+							word.wordid = sense.wordid 
+							WHERE synset = '$line2' 
 							AND sense.lang = '$lang'" ) ;
 			if [ -n "$re" ];then
 				echo "$re";
 			else
-				re= $(sqlite3 "$DB"  \
-							"SELECT lemma FROM word JOIN sense ON  \
-								word.wordid = sense.wordid WHERE  \
-								synset = '$line2'  \
+				re= $(sqlite3 "$DB"  
+							"SELECT lemma FROM word JOIN sense ON 
+								word.wordid = sense.wordid 
+								WHERE synset = '$line2'  
 								AND sense.lang = eng" ) ;
 				echo "$re" ;
 			fi  
@@ -84,22 +89,22 @@ main(){
 	);
 
   #relから下位語を取得する
-  KAIGO=$( sqlite3 "$DB" "SELECT synset2 FROM synlink \
-              WHERE synset1 = '$id'  \
-               AND link    = hypo" |  \
-		while read line2; do 
-			re= $(sqlite3 "$DB"  \
-						"SELECT lemma FROM word JOIN sense ON  \
-							word.wordid = sense.wordid WHERE  \
-							synset = '$line2'  \
+  KAIGO=$( sqlite3 "$DB" 
+							"SELECT synset2 FROM synlink 
+              WHERE synset1 = '$id'  
+               AND link = hypo" | while read line2; do 
+			re= $(sqlite3 "$DB"  
+						"SELECT lemma FROM word JOIN sense ON  
+							word.wordid = sense.wordid 
+							WHERE synset = '$line2'  
 							AND sense.lang = '$lang'" ) ;
 			if [ -n "$re" ];then
 				echo "$re";
 			else
-				sqlite3 "$DB"  \
-							"SELECT lemma FROM word JOIN sense ON  \
-								word.wordid = sense.wordid WHERE  \
-								synset = '$line2'  \
+				sqlite3 "$DB"  
+							"SELECT lemma FROM word JOIN sense ON  
+								word.wordid = sense.wordid 
+								WHERE synset = '$line2' 
 								AND sense.lang = eng" ;
 			fi  
 		done

@@ -46,7 +46,8 @@ main(){
 							word.wordid = sense.wordid  
 							WHERE synset ='$id'  
 							AND sense.lang = 'eng'" );
-		echo "WORD : $WORD_J$WORD_E" | tr '\n' ',' | sed -e "s/$/\n/g"
+		echo "  WORD_J : `echo $WORD_J | tr '\n' ',' | sed -e "s/$/\n/g"`" ;
+		echo "  WORD_E : `echo $WORD_E | tr '\n' ',' | sed -e "s/$/\n/g"`" ;
 
 		#IDから定義文を取得する
 		TEIGI_J=$( sqlite3 "$DB" "SELECT sid, def 
@@ -57,8 +58,8 @@ main(){
 							FROM synset_def 
 							WHERE synset = '$id' 
 							AND lang   = 'eng'" ) ;
-		echo "TEIGI_J : $TEIGI_J" ;
-		echo "TEIGI_E : $TEIGI_E";	
+		echo " TEIGI_J : $TEIGI_J" ;
+		echo " TEIGI_E : $TEIGI_E";	
 
 		#IDから例文を取得する
 		REIBUN_J=$( sqlite3 "$DB" "SELECT sid, def 
@@ -103,7 +104,7 @@ main(){
 				echo "$JOUIGO_E" ;
 			done
 		);
-		echo "JOUIGO: $JOUIGO"  | tr '\n' ',' | sed -e "s/$/\n/g";
+		echo "  JOUIGO : $JOUIGO"  | tr '\n' ',' | sed -e "s/$/\n/g";
 		#relから下位語を取得する
 		KAIGO=$( sqlite3 "$DB" "SELECT synset2 
 							FROM synlink 
@@ -123,7 +124,7 @@ main(){
 				echo "$KAIGO_E" ;
 			done
 		);
-		echo "KAIGO: $KAIGO"  | tr '\n' ',' | sed -e "s/$/\n/g";
+		echo "   KAIGO : $KAIGO"  | tr '\n' ',' | sed -e "s/$/\n/g";
 	done
 }
 #

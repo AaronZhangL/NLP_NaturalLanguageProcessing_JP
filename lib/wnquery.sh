@@ -10,78 +10,78 @@ main(){
 	# 検索語からシノニムを取得
   word=$( echo "$searchword" | sed -e "s| |_|g" );
 wordID=$( sqlite3 "$DB" "SELECT wordid 
-					FROM word 
-					WHERE lemma = '$word' 
-					AND pos = 'n'
-					AND lang  = '$lang'") ;
+						FROM word 
+						WHERE lemma = '$word' 
+						AND pos = 'n'
+						AND lang  = '$lang'") ;
 	echo "wordID: $wordID";
   SYNONYM=$( sqlite3 "$DB" "SELECT lemma 
-					FROM word 
-					JOIN wordlink ON 
-					word.wordid = wordlink.wordid2 
-					WHERE wordid1 = '$wordID'  
-					AND link = 'syns'" );
+						FROM word 
+						JOIN wordlink ON 
+						word.wordid = wordlink.wordid2 
+						WHERE wordid1 = '$wordID'  
+						AND link = 'syns'" );
 	echo "SYNONYM : $SYNONYM" ;
 
 	# 検索語からSYNSETSを取得
   SYNSETS=$( sqlite3 "$DB" "SELECT synset
-					FROM word LEFT 
-					JOIN sense ON 
-					word.wordid = sense.wordid  
-					WHERE lemma = '$searchword' 
-					AND sense.lang = '$lang'" );
+						FROM word LEFT 
+						JOIN sense ON 
+						word.wordid = sense.wordid  
+						WHERE lemma = '$searchword' 
+						AND sense.lang = '$lang'" );
 	echo "SYNSETS :$SYNSETS" | tr '\n' ',' | sed -e "s/$/\n/g";
 
   #SYNSETSからキーワードを取得する
   echo "$SYNSETS" | head -n1 | while read id; do
 	WORD=$( sqlite3 "$DB" "SELECT lemma 
-					FROM word  
-					JOIN sense ON  
-					word.wordid = sense.wordid  
-					WHERE synset ='$id'  
-					AND sense.lang = '$lang'" );
+						FROM word  
+						JOIN sense ON  
+						word.wordid = sense.wordid  
+						WHERE synset ='$id'  
+						AND sense.lang = '$lang'" );
 	echo "WORD : $WORD" | tr '\n' ',' | sed -e "s/$/\n/g"
 
   #IDから定義文を取得する
   TEIGI=$( sqlite3 "$DB" "SELECT sid, def 
-					FROM synset_def 
-					WHERE synset = '$id' 
-					AND lang   = '$lang'" ) ;
+						FROM synset_def 
+						WHERE synset = '$id' 
+						AND lang   = '$lang'" ) ;
 	echo "TEIGI : $TEIGI";	
 
   #IDから例文を取得する
   REIBUN=$( sqlite3 "$DB" "SELECT sid, def 
-					FROM synset_ex 
-					WHERE synset = '$id' 
-					AND lang   = '$lang'" );
+						FROM synset_ex 
+						WHERE synset = '$id' 
+						AND lang   = '$lang'" );
 	echo "REIBUN : $REIBUN";
 
   #IDから品詞を取得する
   HINSHI=$( sqlite3 "$DB" "SELECT sid, def 
-					FROM synset_def 
-					WHERE synset = '$id' 
-					AND lang   = '$lang'" );
+						FROM synset_def 
+						WHERE synset = '$id' 
+						AND lang   = '$lang'" );
 	echo "HINSHI : $HINSHI" ;
 
   #IDからRelを取得する
   JOUIGO=$( sqlite3 "$DB" "SELECT synset2 
-					FROM synlink 
-					WHERE synset1 = '$id' 
-					AND link = 'hype'" | while read line2; do 
+						FROM synlink 
+						WHERE synset1 = '$id' 
+						AND link = 'hype'" | while read line2; do 
 			re= $(sqlite3 "$DB" "SELECT lemma 
-				FROM word JOIN sense ON  
-				word.wordid = sense.wordid 
-				WHERE synset = '$line2' 
-				AND sense.lang = '$lang'" ) ;
+						FROM word JOIN sense ON  
+						word.wordid = sense.wordid 
+						WHERE synset = '$line2' 
+						AND sense.lang = '$lang'" ) ;
 			echo "re: $re";	
 			if [ -n "$re" ];then
 				echo "$re";
 			else
 				sqlite3 "$DB" "SELECT lemma 
-					FROM word JOIN sense ON
-					word.wordid = sense.wordid 
-					WHERE synset = '$line2'  
-					AND sense.lang = eng"  ;
+						FROM word JOIN sense ON
+						word.wordid = sense.wordid 
+						WHERE synset = '$line2'  
+						AND sense.lang = eng"  ;
 			fi  
 		done
 	);
@@ -99,11 +99,11 @@ wordID=$( sqlite3 "$DB" "SELECT wordid
 			if [ -n "$re" ];then
 				echo "$re";
 			else
-				sqlite3 "$DB"  
-							"SELECT lemma FROM word JOIN sense ON  \
-								word.wordid = sense.wordid \
-								WHERE synset = '$line2' \
-								AND sense.lang = eng" ;
+				sqlite3 "$DB" "SELECT lemma 
+						FROM word JOIN sense ON  
+						word.wordid = sense.wordid 
+						WHERE synset = '$line2' 
+						AND sense.lang = eng" ;
 			fi  
 		done
 	);

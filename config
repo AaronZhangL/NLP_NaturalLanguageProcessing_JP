@@ -187,3 +187,5 @@
   export EXOPTYP=$exopdir/typ
   #語彙体型ファイル
 #GOITAIKEI="${LIBDIR}/GOITAIKEI3";
+  #NEWSPACKDBファイル
+  NEWSPACKDB="${LIBDIR}/NEWSPACKDB2";

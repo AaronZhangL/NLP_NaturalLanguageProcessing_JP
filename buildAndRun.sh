@@ -6,7 +6,6 @@ echo "#!/bin/bash" > run.sh ;
     cat README \
         config \
 				lib/makeGoitaikei.sh \
-				lib/makeNewspackDB.sh \
         lib/parse.sh \
         lib/termExtract.sh \
         lib/calcImp.sh \
@@ -15,6 +14,7 @@ echo "#!/bin/bash" > run.sh ;
         lib/makeGraph.sh \
         lib/opinionExtract.sh \
         lib/summaryExtract.sh \
+        lib/getCategory.sh \
         lib/print.sh \
         lib/main.sh >> run.sh ;
 

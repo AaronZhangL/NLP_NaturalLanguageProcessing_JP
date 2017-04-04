@@ -49,11 +49,18 @@ def getSynLinksRecursive(senses, link, lang='jpn', _depth=0):
                      getWord(sense.wordid).lemma,
                      ' ',
                      getSynset(sense.synset).name])
+      #print "##########"
+      #print sense.wordid
+      #print getWord(sense.wordid)
+      #print sense.synset
+      #print getSynset(sense.synset)
+      #print "##########"
     _senses = []
     for synLink in synLinks:
       sense = getSense(synLink.synset2, lang)
       if sense:
         _senses.append(sense)
+        #print _senses
         
     getSynLinksRecursive(_senses, link, lang, _depth+1)
 
@@ -62,6 +69,7 @@ if __name__ == '__main__':
     words = getWords(sys.argv[1].decode('utf-8'))
     if words:
       sense = getSenses(words[0])
+      print sense
       link = len(sys.argv)>=3 and sys.argv[2] or 'hypo'
       lang = len(sys.argv)==4 and sys.argv[3] or 'jpn'
       getSynLinksRecursive(sense, link, lang)

@@ -251,4 +251,5 @@ main2(){
   fi
 }
 main2;
+#main;
 exit;

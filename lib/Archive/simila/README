@@ -1,0 +1,35 @@
+ntlkをインストールする必要がある
+http://yazaten.hatenablog.com/entry/2014/10/22/132357
+https://pypi.python.org/pypi/setuptools
+wget https://pypi.python.org/packages/16/ef/44baff6e9b1f8125d759d026757677a8a82d14d9974726f13726dee9adfb/setuptools-34.2.0.zip#md5=41b630da4ea6cfa5894d9eb3142922be
+unzip setuptools-34.2.0.zip 
+cd setuptools-34.2.0
+
+sudo easy_install pip
+sudo pip install -U numpy
+sudo pip install -U nltk
+
+nltk.download()
+画面が開くので、bookを選択し、左下のDownloadボタンを押す
+
+
+「apple」   physical_entity-物質-固体-食べ物-青果-果物-リンゴ
+「eating apple」  physical_entity-物質-固体-食べ物-青果-果物-リンゴ-林檎
+「grape」 physical_entity-物質-固体-食べ物-青果-果物-葡萄
+「baseball」捨象-psychological_feature-催し物-行ない-アクティビティー-気晴らし-運動競技-アスレチックス-アウトドアゲーム-field_game-ball_game-ベイスボール
+
+かなり近い
+python simila.py "apple" "eating_apple"
+0.5
+
+近い
+python simila.py "apple" "grape"
+0.333333333333
+
+遠い
+python simila.py "apple" "baseball" 
+0.0526315789474
+
+#http://www.welearn.jp/nlp/wordnet_similarity.html
+
+

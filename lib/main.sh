@@ -31,7 +31,8 @@ source lib/cabochaExtract.sh ;
 source lib/makeGraph.sh ;
 source lib/opinionExtract.sh ;
 source lib/summaryExtract.sh ;
-source lib/ontNodeMatch.sh ;
+#source lib/ontNodeMatch.sh ;
+source lib/getCategory.sh ;
 source lib/print.sh ;         
 #
 usage_msg='usage:
@@ -251,7 +252,8 @@ function Main(){
   makeGraph ;                   #グラフの生成 
   opinionExtract ;              #評価表現の抽出
   summaryExtract ;              #要約の抽出
-  ontNodeMatch ;								#オントロジーノードとのマッチング
+#  ontNodeMatch ;								#オントロジーノードとのマッチング
+  getCategory ;
   printOut ;
 }
 #

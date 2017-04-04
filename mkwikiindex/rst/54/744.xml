@@ -1,7 +1,0 @@
-<ITEM>
-  <TITEL>サンドボックスの初期化</TITLE>
-  <META>{{サンドボックスの冒頭案内文}}{{PAGENAME}}</META>
-  <DESCRIPTION>	<!-- この行は編集不可！ この行と次行の【コメント】、次行の【テンプレート呼び出し】は変えないで！-->\n<!-- この行は編集不可！ --> \n\n== ここから下に書き込んでください。 ==\n<noinclude>[[Category:プロジェクト関連文書用テンプレート|]]</noinclude>	</DESCRIPTION>
-  <BODY>26659200	<!-- この行は編集不可！ この行と次行の【コメント】、次行の【テンプレート呼び出し】は変えないで！-->\n<!-- この行は編集不可！ --> {{サンドボックスの冒頭案内文}}\n\n== ここから下に書き込んでください。 ==\n<noinclude>[[Category:プロジェクト関連文書用テンプレート|{{PAGENAME}}]]</noinclude>	</BODY>
-  <MECAB>サンドボックス の 初期化  == ここ から 下 に 書き込ん で ください 。 == </MECAB>
-  <ID>54744</ID><LATESTID>26659200</LATESTID><NAMESPACE>10</NAMESPACE><RESTRICTIONS>move=sysop:edit=sysop</RESTRICTIONS><ISREDIRECT>0</ISREDIRECT><ISNEW>0</ISNEW><RANDOM>1</RANDOM><TOUCHED>0.50667264824733138</TOUCHED><LINKSUPDATED>20090629052149</LINKSUPDATED><LEN>382</LEN><CONTENTMODEL></CONTENTMODEL><LANG></LANG></ITEM>

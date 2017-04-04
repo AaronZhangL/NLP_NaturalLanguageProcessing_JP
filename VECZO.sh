@@ -1,13 +1,14 @@
 #!/bin/bash
 #堀内作成
 
-keys=(`./MAIN.sh -f "in"|sed -e "s|.*<KEYS>||" -e "s|</KEYS>.*||"|grep "<KEY>" |sed -e "s|<KEY>|\n<KEY>|g"|grep -v "^$"|awk '{
-noun=$0 ;
-gsub (/<SCORE>.*$/, "", noun) ;
-gsub (/^.*<KEY>/, "", noun) ;
-printf "%s " , noun;
-}'`);
-echo ${keys[@]}
+#keys=(`./MAIN.sh -f "in"|sed -e "s|.*<KEYS>||" -e "s|</KEYS>.*||"|grep "<KEY>" |sed -e "s|<KEY>|\n<KEY>|g"|grep -v "^$"|awk '{
+#noun=$0 ;
+#gsub (/<SCORE>.*$/, "", noun) ;
+#gsub (/^.*<KEY>/, "", noun) ;
+#printf "%s " , noun;
+#}'`);
+#echo ${keys[@]}
+keys=($1);
 for var in sports world economics national ;do
   model="VECZO/model/${var}_doc2vec";
   #doc2vecでエラーがなかった単語の組み合わせ

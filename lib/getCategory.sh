@@ -44,35 +44,35 @@ function getCategory(){
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"| \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
     2)
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"|egrep "${wo[1]}"| \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
     3)
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"|egrep "${wo[1]}"|egrep "${wo[2]}"| \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
     4)
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"|egrep "${wo[1]}"|egrep "${wo[2]}"|egrep "${wo[3]}" | \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
     5)
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"|egrep "${wo[1]}"|egrep "${wo[2]}"|egrep "${wo[3]}"|egrep "${wo[4]}"| \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
     *)
@@ -80,7 +80,7 @@ function getCategory(){
       NPCATEGORY_RESULT_LINE=$( egrep "${wo[0]}" "$NEWSPACKDB"|egrep "${wo[1]}"|egrep "${wo[2]}"| \
         sed -e "s/^.*<CATE>//g" -e "s/<\/CATE>.*$//g" | \
         sort | uniq -c | sort -nr | \
-        head -n1| awk '{ print $2;}' | awk -F- '{ print $1; }'| \
+        head -n1| awk '{ print $2;}' | \
         sed -e "s/^/<CATEGORY>/g" -e "s/$/<\/CATEGORY>/g" ) ;
       ;;
   esac

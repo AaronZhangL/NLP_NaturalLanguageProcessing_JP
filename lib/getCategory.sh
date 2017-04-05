@@ -10,25 +10,25 @@ function getCategory_ani(){
   kw=$(echo "$l"|awk -F: '{ if($2> '"$av"'){ print $1; } }');
   wc=$(echo "$kw"|wc -l|awk '{ print $1; }') ;
 
-  #cnt$B$O<+F0E*$K(B0$B$G=i4|2=$5$l$k$+$iITMW(B
+  #cntは自動的に0で初期化されるから不要
   #cnt=0;
 
-  # =`` $B$O8E$$=q$-J}!#(B =$( ) $B$K$7$h$&(B
+  # =`` は古い書き方。 =$( ) にしよう
   #RESULT_LINE=`cat "$NEWSPACKDB"`;
 
-  # $B%m!<%+%kJQ?t$O>.J8;z!#%0%m!<%P%kJQ?t$OBgJ8;z(B
-  # $B0UL#$r;}$?$J$$JQ?t$O(B2$BJ8;zDxEY$G!#0UL#$r;}$DJQ?t$,L\N)$D$h$&$K(B
+  # ローカル変数は小文字。グローバル変数は大文字
+  # 意味を持たない変数は2文字程度で。意味を持つ変数が目立つように
   rl=$(cat "$NEWSPACKDB"); # RL: resultLine
   NPCATEGORY_RESULT_LINE=$(echo "$kw"| \
       while read l; do # l: line
         rl=$(echo "$rl"|fgrep "$l");
 
-         # $B%$%s%/%j%a%s%H$J$I?tCM$O(B (( )) $B$G0O$`$HJXMx(B
-         # $BJQ?t$N(B$$B$bITMW!!(B
+         # インクリメントなど数値は (( )) で囲むと便利
+         # 変数の$も不要　
          #cnt=$((cnt + 1));
          ((c++)); # c:count
 
-        # $B9bB.2=$rL\;X$9$H$-$O(B if $B$9$iI,MW$J$7(B
+        # 高速化を目指すときは if すら必要なし
         # (( .....))&&{
         #   true
         # }||{

@@ -22,7 +22,7 @@ function getCategoryNP(){
               head -n1|awk '{ print $2;}'| \
               sed -e "s/^/<$TAG>/g" -e "s/$/<\/$TAG>/g" ;
             }
-            echo "<SIM>$rl</SIM>" ; break ;  
+            echo "<SIM>$( echo "$rl" | head -n1)</SIM>" ; break ;  
           }||{
             rl="$rl_t";
           }
@@ -38,12 +38,14 @@ function getCategoryNP(){
             f=1;
         }
         ((c==wcl))&&{
-            echo "<SIM>$rl</SIM>" ; break ;  
+            echo "<SIM>$( echo "$rl" | head -n1)</SIM>" ; break ;  
         }
       done );
 }
 function getCategoryGT(){
-    GTCATEGORY_RESULT_LINE=$(echo "$kwl" | tr ' ' '\n' | \
+    #GTCATEGORY_RESULT_LINE=$(echo "$kwl" | tr ' ' '\n' | \
+    #GTCATEGORY_RESULT_LINE=$( echo "$TITLE_KEYS_RESULT_LINE" | sed -e "s/<\/KEY>/\n/g" -e "s/<KEY>//g" -e "s/<\/KEY>//g" -e "s/<SCORE>[^<]*<\/SCORE>//g" | grep -v "^$" | nkf -e | mecab -Owakati | nkf -w | tr ' ' '\n' | grep -v "^$" |  \
+    GTCATEGORY_RESULT_LINE=$( echo "$kwl" | nkf -e | mecab -Owakati | nkf -w | tr ' ' '\n' | grep -v "^$" | grep -v '^...$' | \
     while read l; do 
 #   echo "####l $l #####" ;
         rl=$(sary "$l" lib/"$DIC");
@@ -55,10 +57,11 @@ function getCategoryGT(){
           sed -e "s/^.*<KEIROJ>//g" -e "s/<\/KEIROJ>.*$//g"| \
           sort|uniq -c|sort -nr| \
           head -n1|awk '{ print $2;}'| \
-          sed -e "s/^/<$TAG>/g" -e "s/$/-\[$l\]<\/$TAG>/g" ;
-          break ;
+          sed -e "s/^/<$TAG>/g" -e "s/$/<\/$TAG>/g" ;
+          #break ;
       }
-    done );
+    done | sort | uniq -c | sort -nr | awk '{ print $2; }' | head -n5;
+    );
 }
 function getCategoryWN(){
 :

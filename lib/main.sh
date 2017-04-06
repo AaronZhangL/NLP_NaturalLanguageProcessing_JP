@@ -252,6 +252,8 @@ function Main(){
   opinionExtract ;              #評価表現の抽出
   summaryExtract ;              #要約の抽出
   getCategory "NEWSPACKDB2" "NPCATEGORY" ;
+  getCategory "GOITAIKEI2" "GTCATEGORY" ;
+#  getCategory "wnjpn.db" "WNCATEGORY" ;
   printOut ;
 }
 #Main ;

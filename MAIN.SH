@@ -24,6 +24,7 @@
 
 source config ;               #コンフィグファイル読み込み
 source lib/parse.sh ; 
+source lib/main.sh ;
 source lib/termExtract.sh ;
 source lib/calcImp.sh ; 
 source lib/mecabExtract.sh
@@ -31,6 +32,7 @@ source lib/cabochaExtract.sh ;
 source lib/makeGraph.sh ;
 source lib/opinionExtract.sh ;
 source lib/summaryExtract.sh ;
+source lib/getCategory.sh ;
 source lib/print.sh ;         
 #
 usage_msg='usage:
@@ -235,25 +237,6 @@ while getopts dmf:c:hv option; do
 done
 shift $(($OPTIND - 1))
 selectCalc "$calc_imp";
-#
-#
-function Main(){
-  if [ "$inputFile" == "" ] ; then
-    # ./MAIN.SH < in の場合
-    parse ;
-  else
-    # -f in に対応
-    parse<"$inputFile" ;        #パラメータ処理
-  fi
-  termExtract ;                 #重要語解析
-  mecabExtract ;                #形態素解析(人名地名組織名の抽出）
-  cabochaExtract ;              #構文解析
-  makeGraph ;                   #グラフの生成 
-  opinionExtract ;              #評価表現の抽出
-  summaryExtract ;              #要約の抽出
-  printOut ;
-}
-#
 Main ;
 exit 0 ;
 

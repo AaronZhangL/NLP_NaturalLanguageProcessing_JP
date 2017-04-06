@@ -31,7 +31,6 @@ source lib/cabochaExtract.sh ;
 source lib/makeGraph.sh ;
 source lib/opinionExtract.sh ;
 source lib/summaryExtract.sh ;
-#source lib/ontNodeMatch.sh ;
 source lib/getCategory.sh ;
 source lib/print.sh ;         
 #
@@ -252,12 +251,9 @@ function Main(){
   makeGraph ;                   #グラフの生成 
   opinionExtract ;              #評価表現の抽出
   summaryExtract ;              #要約の抽出
-#  ontNodeMatch ;								#オントロジーノードとのマッチング
-  getCategory ;
+  getCategory "NEWSPACKDB2" "NPCATEGORY" ;
   printOut ;
 }
-#
-Main ;
-exit 0 ;
+#Main ;
 
 

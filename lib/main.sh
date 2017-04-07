@@ -253,7 +253,7 @@ function Main(){
   summaryExtract ;              #要約の抽出
   getCategory "NEWSPACKDB2" "NPCATEGORY" ;
   getCategory "GOITAIKEI2" "GTCATEGORY" ;
-#  getCategory "wnjpn.db" "WNCATEGORY" ;
+  getCategory "wnjpn.db" "WNCATEGORY" ;
   printOut ;
 }
 #Main ;

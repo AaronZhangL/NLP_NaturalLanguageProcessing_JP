@@ -84,16 +84,17 @@ function wnquery_byid(){
   DB="lib/$DIC";
   wt=`sqlite3 "lib/wnjpn.db" "SELECT * FROM word LEFT JOIN sense ON word.wordid = sense.wordid WHERE lemma = '$sw' AND word.pos = 'n' AND sense.lang = '$lg'"|head -n 1`;
 #179412|jpn|大学||n|08278324-n|179412|jpn||||hand
-  if [ -z "$wt" ];then
+  [[ -z "$wt" ]] && {
     break;
-  fi
-  wd=`echo "$wt"|awk -F\| '{print $3;}'`;
-  si=$(echo "$wt" | awk -F\| '{print $6}');
-  #228553|jpn|野球||n
-  #00476140-n|44534|eng|0|1|0|eng-30
-  getSense "$si" "$lg" "$wd"|head -n1|while read sense;do
-    getSynLinksRecursive "$sense" "$sl" "$lg" "0";
-  done
+  }||{
+    wd=`echo "$wt"|awk -F\| '{print $3;}'`;
+    si=$(echo "$wt" | awk -F\| '{print $6}');
+    #228553|jpn|野球||n
+    #00476140-n|44534|eng|0|1|0|eng-30
+    getSense "$si" "$lg" "$wd"|head -n1|while read ss;do
+      getSynLinksRecursive "$ss" "$sl" "$lg" "0";
+    done
+  }
 }
 function getCategoryNP(){
   local DIC="$1" TAG="$2" ;

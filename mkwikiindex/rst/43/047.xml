@@ -1,7 +1,0 @@
-<ITEM>
-  <TITEL>Stub</TITLE>
-  <META>{{Asboxn| name     = Stubn| category = スタブn| tempsort = *n| note     = [[:Template:Stub|このテンプレート]]は分野別のスタブテンプレート（[[Wikipedia:スタブカテゴリ]]参照）に変更することが望まれています。n}}{{#switch:{{FULLPAGENAME}}{{Documentation}}</META>
-  <DESCRIPTION>	{{Asbox\n| name     = Stub\n| category = スタブ\n| tempsort = *\n| note     = [[:Template:Stub|このテンプレート]]は分野別のスタブテンプレート（[[Wikipedia:スタブカテゴリ]]参照）に変更することが望まれています。\n}}\n  |Wikipedia:スタブ\n  |Wikipedia:スタブカテゴリ = [[Category:スタブ|*]]\n}}<noinclude>\n\n</noinclude>	</DESCRIPTION>
-  <BODY>54171864	{{Asbox\n| name     = Stub\n| category = スタブ\n| tempsort = *\n| note     = [[:Template:Stub|このテンプレート]]は分野別のスタブテンプレート（[[Wikipedia:スタブカテゴリ]]参照）に変更することが望まれています。\n}}{{#switch: {{FULLPAGENAME}}\n  |Wikipedia:スタブ\n  |Wikipedia:スタブカテゴリ = [[Category:スタブ|*]]\n}}<noinclude>\n{{Documentation}}\n</noinclude>	</BODY>
-  <MECAB>Stub  | note = [[: Template : Stub | この テンプレート ]] は 分野 別 の スタブ テンプレート （[[ Wikipedia : スタブ カテゴリ ]] 参照 ） に 変更 する こと が 望ま れ て い ます 。 </MECAB>
-  <ID>43047</ID><LATESTID>54171864</LATESTID><NAMESPACE>10</NAMESPACE><RESTRICTIONS>move=sysop:edit=sysop</RESTRICTIONS><ISREDIRECT>0</ISREDIRECT><ISNEW>0</ISNEW><RANDOM>1</RANDOM><TOUCHED>0.75517822569236159</TOUCHED><LINKSUPDATED>20150120042034</LINKSUPDATED><LEN>417</LEN><CONTENTMODEL></CONTENTMODEL><LANG></LANG></ITEM>

@@ -8,7 +8,7 @@
 # または
 # ./MAIN.SH -f in -c1 -m
 #   -f  は入力ファイル名
-#   -c  は解析モデル名(1-6)
+#   -c  は解析モデル名(1-6) デフォルトは 3 : calc_imp_by_HASH（延べ数）
 #   -m  は解析モデル名の表示
 #
 #   詳しくは ./MAIN.SH -h 
@@ -22,8 +22,9 @@
 # 3. ニューラルネットワークによる重要語抽出（word2vec）
 # 4. 日本語語彙体形を使ってカテゴリ分類
 
-source config ;               #コンフィグファイル読み込み
+source config ;               
 source lib/parse.sh ; 
+source lib/main.sh ;
 source lib/termExtract.sh ;
 source lib/calcImp.sh ; 
 source lib/mecabExtract.sh
@@ -31,7 +32,7 @@ source lib/cabochaExtract.sh ;
 source lib/makeGraph.sh ;
 source lib/opinionExtract.sh ;
 source lib/summaryExtract.sh ;
-source lib/ontNodeMatch.sh ;
+source lib/getCategory.sh ;
 source lib/print.sh ;         
 #
 usage_msg='usage:
@@ -236,26 +237,6 @@ while getopts dmf:c:hv option; do
 done
 shift $(($OPTIND - 1))
 selectCalc "$calc_imp";
-#
-#
-function Main(){
-  if [ "$inputFile" == "" ] ; then
-    # ./MAIN.SH < in の場合
-    parse ;
-  else
-    # -f in に対応
-    parse<"$inputFile" ;        #パラメータ処理
-  fi
-  termExtract ;                 #重要語解析
-  mecabExtract ;                #形態素解析(人名地名組織名の抽出）
-  cabochaExtract ;              #構文解析
-  makeGraph ;                   #グラフの生成 
-  opinionExtract ;              #評価表現の抽出
-  summaryExtract ;              #要約の抽出
-  ontNodeMatch ;								#オントロジーノードとのマッチング
-  printOut ;
-}
-#
-Main ;
+Main ; # lib/main.sh
 exit 0 ;
 

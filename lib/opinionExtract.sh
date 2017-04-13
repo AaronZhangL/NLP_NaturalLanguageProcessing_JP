@@ -52,7 +52,7 @@ function opinionExtract.IS_HAS_TABLE(){
 function opinionExtract.tsv2out(){
   EXOPINIONS_RESULT_LINE=$(echo "$EXOPINIONS_TMP" | $awk -F"\t" '{ print  $3 "\t" $4 "\t" $7 "\t" $9 "\t" $8 }' | nkf -wLu  | LANG=C grep -i "\[" | sed -e "s/^.*\[/\[/g");
   HTML_EXTRACT_OPINIONS_RESULT_LINE="<EX_OPINIONS><![CDATA[$EXOPINIONS_RESULT_LINE]]></EX_OPINIONS>" ; 
-  if [ $DEBUG == "TRUE" ]; then echo "EXOPINIONS_RESULT_LINE : $EXOPINIONS_RESULT_LINE" ; fi
+  if [ $DEBUG == "TRUE" ]; then echo "EXOPINIONS_RESULT_LINE : $EXOPINIONS_RESULT_LINE"  | nkf -wLu ; fi
 }
 #
 #<> func_pol_extract
@@ -480,7 +480,7 @@ function opinionExtract.Extract_Opinions(){
     # この関数で変えた環境変数を元に戻す
     export LANG=$LANG_BAK;
     export LC_ALL=$LC_ALL_BAK ;
-    if [ $DEBUG == "TRUE" ]; then echo "EXOPINIONS_TMP : $EXOPINIONS_TMP" ; fi
+    if [ $DEBUG == "TRUE" ]; then echo "EXOPINIONS_TMP : $EXOPINIONS_TMP" | nkf -wLu ; fi
 }
 #
 # <> func_tsvKakariuke

@@ -209,12 +209,12 @@ function summaryExtract.Summarize(){
 # 入力７: $JUUYOU_LINE
 # 出力: $awkTermExtractList ( 変数 ) ノードとスコアのリスト
 #
+#
+function summaryExtract.calc_imp_by_HASH_ontology(){
   #ノードによる重み付け
   #(1)単語毎の重要度：上記重要語の抽出アルゴリズムを用いて算出
   #(2)人名／地名／組織／日付の重要度：単語毎に1を加算する
   #(3)係り受けの数：オントロジー解析の結果より算出した単語毎に借り受けられた数を算出
-#
-function summaryExtract.calc_imp_by_HASH_ontology(){
   #RetNode=`echo -en "$IS_TABLE_FIN\n$HAS_TABLE_FIN" | LANG=C sort -s -k1 -u | $awk -F '@@@' '
   RetNode=`echo -en "$IS_TABLE_FIN\n$HAS_TABLE_FIN" | LANG=C sort -s -k1 -u | awk -F '@@@' '
     {

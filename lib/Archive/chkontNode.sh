@@ -9,7 +9,7 @@ function out(){
 
 }
 function chk(){
-  rst=`./MAIN.sh -f in3`;
+  rst=`./MAIN.SH -f in3`;
 
 }
 function parse(){
@@ -28,7 +28,7 @@ function main(){
     parse;
     chk;
     out;
-  done < lib/NEWSPACKDB
+  done < lib/NEWSPACKDB | head
 }
 
 

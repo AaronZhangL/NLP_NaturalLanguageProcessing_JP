@@ -49,7 +49,7 @@ usage_msg='usage:
 
      -c number        1 : calc_imp_by_HASH_Freq（）
                       2 : calc_imp_by_HASH_TF（）
-                      3 : calc_imp_by_HASH（延べ数）
+             default<>3 : calc_imp_by_HASH（延べ数）
                       4 : calc_imp_by_HASH（異なり数）
                       5 : calc_imp_by_HASH_PP（）
                       6 : calc_imp_by_DB（）
@@ -65,7 +65,7 @@ usage_msg='usage:
 function usage(){
   echo "$usage_msg" 1>&2 ;
 }
-#[ 0 = $# ] && { usage; exit 1; }
+if [ 0 = $# ]; then usage; exit 1; fi
 #
 function version() {
     ver=$1

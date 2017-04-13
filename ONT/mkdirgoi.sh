@@ -42,10 +42,20 @@ function  getSynLinks(){
   if [ -z "$rst" ];then
     rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('hprt','hmem','hsub','dmnc','dmtr')"|head -n1`;
   fi
-  #if [ -z "$rst" ];then
-  #  rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('inst','caus','also','sim')"|head -n1`;
-# #   #echo "#####$rst####"
-  #fi
+  if [ -z "$rst" ];then
+    rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('caus','also')"|head -n1`;
+    local p=$(echo "$rst"awk -F\| '{print $2;}'|sed -e "s|-.*||"); 
+    if echo "$path"|grep "WN${p}" > /dev/null;then
+      rst="";
+    fi
+  fi
+  if [ -z "$rst" ];then
+    rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('inst','sim')"|head -n1`;
+    local p=$(echo "$rst"awk -F\| '{print $2;}'|sed -e "s|-.*||"); 
+    if echo "$path"|grep "WN${p}" > /dev/null;then
+      rst="";
+    fi
+  fi
   #rst=`sqlite3 "$DB" "SELECT * FROM synlink LEFT JOIN synset ON synlink.synset2 = synset.synset synset1='$synset' and link='$link';"`;
   echo "$rst";
 }
@@ -65,6 +75,7 @@ function getSynLinksRecursive(){
     #00452293-n|00452864-n|hypo|eng30|00452864-n|n|beagling|eng30
     #echo "<sy>$synset</sy><jp>$lemma</jp><en>$name</en>";
     echo "WN$synset"
+    path="${path}WN${synset}"
     #echo "$space$lemma $name";
   _senses=`echo "$synLinks"|head -n1|awk -F\| '{print $2;}'|while read synset2;do
     getSense "$synset2" "$lang";
@@ -92,6 +103,7 @@ function mkwn(){
 		fi
     #親経路をたどる
     #dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| tail -r |tr "\n" "/");
+    path="";
     dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| $tac |tr "\n" "/");
     echo "$dr";
     if [ -z "$dr" ];then

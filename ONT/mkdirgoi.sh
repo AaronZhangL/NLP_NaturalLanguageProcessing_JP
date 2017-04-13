@@ -1,5 +1,5 @@
 #!/bin/bash
-#にほんごごい体系のフォルダを作成する
+##にほんごごい体系のフォルダを作成する
 GOITAIKEI="../lib/GOITAIKEI2";
 WNDB="../lib/wnjpn.db";
 function getWord(){

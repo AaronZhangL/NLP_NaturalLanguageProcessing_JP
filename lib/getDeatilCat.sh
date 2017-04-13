@@ -3,8 +3,9 @@
 
 #まずは引数は単語１個
 WORD=$1;
-WDNF="GETCAT/enjp2.xml";
-GOIF="GETCAT/GOITAIKEI3";
+WDNF="wnjpn.db";
+GOIF="GOITAIKEI3.ary";
+#sary "$l" lib/"$DIC"
 HOSEI="0.5";
 LF=$'\\\x0A';
 

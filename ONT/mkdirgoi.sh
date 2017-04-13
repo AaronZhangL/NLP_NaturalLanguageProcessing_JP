@@ -58,9 +58,6 @@ function getSynLinksRecursive(){
   fi
   local depth=$4;
   synLinks=`getSynLinks "$sense" "$sl"`;
-  if [ -z "$synLinks" ];then
-    continue;
-  fi
     #local wordid=`echo "$sense"|awk -F\| '{print $2;}'`;
     #local lemma=`getWord "$wordid"|awk -F\| '{print $3;}'`;
     #local lemma=`echo "$sense"|awk -F\| '{print $7;}'`;
@@ -74,6 +71,9 @@ function getSynLinksRecursive(){
     
   done|grep -v ^$`;
   depth=$(($depth + 1));
+  if [ -z "$synLinks" ];then
+    break;
+  fi
   echo "$_senses"|head -n1|while read _sense;do
     getSynLinksRecursive "$_sense" "$sl" "$lg" "$depth"; 
   done
@@ -82,7 +82,8 @@ function getSynLinksRecursive(){
 function mkwn(){
   sl="hype";
   lg="";
-  sqlite3 "$WNDB" "select * from sense"|while read ss;do  
+  #sqlite3 "$WNDB" "select * from sense"|while read ss;do  
+  sqlite3 "$WNDB" "select * from sense where synset='01296505-n'"|while read ss;do  
     echo "$ss";
 		if which tac >/dev/null ; then
 			tac="tac" ;
@@ -92,6 +93,7 @@ function mkwn(){
     #親経路をたどる
     #dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| tail -r |tr "\n" "/");
     dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| $tac |tr "\n" "/");
+    echo "$dr";
     if [ -z "$dr" ];then
       echo "$id:親がないのでスキップ";
       continue;

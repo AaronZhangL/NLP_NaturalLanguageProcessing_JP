@@ -7,5 +7,5 @@ cat "$GOITAIKEI" | while read l;do
   dr=$(echo "$l" | sed -e "s|^.*<KEIRO>||" -e "s|</KEIRO>.*$||"|sed -e "s|-|/|g");
   id=$(echo "$l" | sed -e "s|^.*<NO>||" -e "s|</NO>.*$||");
   mkdir -p "$dr";
-  echo "$l"  > "$dr/$id";
+  echo "$l"  > "$dr/GT$id";
 done

@@ -82,8 +82,14 @@ function mkwn(){
   lg="jpn";
   sqlite3 "$WNDB" "select * from sense where lang='$lg'"|while read ss;do  
     echo "$ss";
+		if which tac >/dev/null ; then
+			tac="tac" ;
+		else
+			tac="tail -r" ;
+		fi
     #親経路をたどる
-    dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| tail -r |tr "\n" "/");
+    #dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| tail -r |tr "\n" "/");
+    dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| $tac |tr "\n" "/");
     #自身の情報を作る
     local id=$(echo "$ss"|awk -F\| '{print $1;}');
     #名詞以外はスキップする

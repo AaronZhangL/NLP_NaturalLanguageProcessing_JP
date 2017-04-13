@@ -38,27 +38,29 @@ function  getSynLinks(){
   local sense="$1";
   local synset=`echo "$sense"|awk -F\| '{print $1;}'`
   local link="$2";
-  rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link='$link'"`;
+  rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link='$link'"|head -n1`;
+  if [ -z "$rst" ];then
+    rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('hprt','hmem','hsub','dmnc','dmtr')"|head -n1`;
+  fi
+  #if [ -z "$rst" ];then
+  #  rst=`sqlite3 "$WNDB" "select * from synlink where synset1='$synset' and link in ('inst','caus','also','sim')"|head -n1`;
+# #   #echo "#####$rst####"
+  #fi
   #rst=`sqlite3 "$DB" "SELECT * FROM synlink LEFT JOIN synset ON synlink.synset2 = synset.synset synset1='$synset' and link='$link';"`;
   echo "$rst";
 }
 function getSynLinksRecursive(){
   local sense=$1;
-  local link=$2;
-  local lang="jpn";
+  local sl=$2;
+  local lg="";
   if [ -n "$3" ];then
-    lang="$3";  
+    lg="$3";  
   fi
   local depth=$4;
-  synLinks=`getSynLinks "$sense" "$link"`;
-  #echo "sense:$sense link :$link synLinks:$synLinks";
+  synLinks=`getSynLinks "$sense" "$sl"`;
   if [ -z "$synLinks" ];then
     continue;
   fi
-    local space="";
-    for i in `seq 0 $depth`;do
-      space="$space ";
-    done
     #local wordid=`echo "$sense"|awk -F\| '{print $2;}'`;
     #local lemma=`getWord "$wordid"|awk -F\| '{print $3;}'`;
     #local lemma=`echo "$sense"|awk -F\| '{print $7;}'`;
@@ -79,8 +81,8 @@ function getSynLinksRecursive(){
 
 function mkwn(){
   sl="hype";
-  lg="jpn";
-  sqlite3 "$WNDB" "select * from sense where lang='$lg'"|while read ss;do  
+  lg="";
+  sqlite3 "$WNDB" "select * from sense"|while read ss;do  
     echo "$ss";
 		if which tac >/dev/null ; then
 			tac="tac" ;
@@ -90,6 +92,10 @@ function mkwn(){
     #親経路をたどる
     #dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| tail -r |tr "\n" "/");
     dr=$(getSynLinksRecursive "$ss" "$sl" "$lg" "0"| $tac |tr "\n" "/");
+    if [ -z "$dr" ];then
+      echo "$id:親がないのでスキップ";
+      continue;
+    fi
     #自身の情報を作る
     local id=$(echo "$ss"|awk -F\| '{print $1;}');
     #名詞以外はスキップする
@@ -100,12 +106,16 @@ function mkwn(){
     local se=$(sqlite3 "$WNDB" "SELECT * FROM word JOIN sense ON word.wordid = sense.wordid WHERE synset ='$id'");
     local jg=$(echo "$se" |grep "jpn"|awk -F\| '{print $3;}'|tr "\n" " "); 
     local fn=$(echo "$se" |grep "jpn"|awk -F\| '{print $3;}'|head -n1); 
+    if [ -z "$fn" ];then
+      fn=$(echo "$se" |grep "eng"|awk -F\| '{print $3;}'|head -n1); 
+    fi
     local eg=$(echo "$se" |grep "eng"|awk -F\| '{print $3;}'|tr "\n" " "); 
     #414|eng|suspension||n|14591091-n|414|eng|0|1|6|eng-30
     #229141|jpn|懸濁液||n|14591091-n|229141|jpn||||hand
     local pr=$(echo "$dr" |awk -F/ '{print $(NF - 1)}');
     mkdir -p "WN/$dr";
     echo "<NO>$id</NO><GOI>$jg</GOI><ENGOI>$eg</ENGOI><OYA_NO>$pr</OYA_NO><KEIRO>$dr</KEIRO>" > "WN/${dr}WN${fn}";
+    
     #echo "$dr/$id";
   done
 }

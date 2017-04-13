@@ -207,7 +207,8 @@ function selectCalc(){
     esac
 }
 # : をつけると値を受け取るという意味
-DEBUG="FALSE" ;
+#DEBUG="FALSE" ;
+DEBUG="TRUE" ;
 LIST_MODEL="FALSE" ;
 while getopts dmf:c:hv option; do
     case "$option" in

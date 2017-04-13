@@ -82,8 +82,8 @@ function getSynLinksRecursive(){
 function mkwn(){
   sl="hype";
   lg="";
-  #sqlite3 "$WNDB" "select * from sense"|while read ss;do  
-  sqlite3 "$WNDB" "select * from sense where synset='01296505-n'"|while read ss;do  
+  sqlite3 "$WNDB" "select * from sense"|while read ss;do  
+  #sqlite3 "$WNDB" "select * from sense where synset='01296505-n'"|while read ss;do  
     echo "$ss";
 		if which tac >/dev/null ; then
 			tac="tac" ;

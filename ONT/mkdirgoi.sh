@@ -93,6 +93,8 @@ function getSynLinksRecursive(){
 function mkwn(){
   sl="hype";
   lg="";
+	WC=$(sqlite3 "$WNDB" "select * from sense" | wc -l | awk '{ print $1; }');
+	COUNT=0;
   sqlite3 "$WNDB" "select * from sense"|while read ss;do  
   #sqlite3 "$WNDB" "select * from sense where synset='01296505-n'"|while read ss;do  
     echo "$ss";
@@ -131,6 +133,8 @@ function mkwn(){
     echo "<NO>$id</NO><GOI>$jg</GOI><ENGOI>$eg</ENGOI><OYA_NO>$pr</OYA_NO><KEIRO>$dr</KEIRO>" > "WN/${dr}WN${fn}";
     
     #echo "$dr/$id";
+		((COUNT++))
+		echo "#$COUNT/$WC";
   done
 }
 function mkgt(){

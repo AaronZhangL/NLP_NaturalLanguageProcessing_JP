@@ -239,4 +239,3 @@ shift $(($OPTIND - 1))
 selectCalc "$calc_imp";
 Main ; # lib/main.sh
 exit 0 ;
-

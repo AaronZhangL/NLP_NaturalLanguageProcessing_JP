@@ -22,7 +22,7 @@
 # 3. ニューラルネットワークによる重要語抽出（word2vec）
 # 4. 日本語語彙体形を使ってカテゴリ分類
 
-source config ;               #コンフィグファイル読み込み
+source ./config ;               #コンフィグファイル読み込み
 source lib/parse.sh ; 
 source lib/termExtract.sh ;
 source lib/calcImp.sh ; 
@@ -34,7 +34,7 @@ source lib/summaryExtract.sh ;
 source lib/getCategory.sh ;
 source lib/print.sh ;         
 #
-usage_msg='usage:
+usage_msg="usage:
     実行例 
     ./MAIN.SH -f in -c1
 
@@ -58,14 +58,12 @@ usage_msg='usage:
                         ./MAIN.SH -f in -c6
 
      -v               バージョン情報の出力
-     '
+";
 #
 #
 function usage(){
   echo "$usage_msg" 1>&2 ;
 }
-if [ 0 = $# ]; then usage; exit 1; fi
-#[ 0 = $# ] && { usage; exit 1; }
 #
 function version() {
     ver=$1
@@ -207,9 +205,32 @@ function selectCalc(){
       ;; 
     esac
 }
+#
+#
+function Main(){
+  if [ "$inputFile" == "" ] ; then
+    # ./MAIN.SH < in の場合
+    parse ;
+  else
+    # -f in に対応
+    parse<"$inputFile" ;        #パラメータ処理
+  fi
+  termExtract ;                 #重要語解析
+  mecabExtract ;                #形態素解析(人名地名組織名の抽出）
+  cabochaExtract ;              #構文解析
+  makeGraph ;                   #グラフの生成 
+  opinionExtract ;              #評価表現の抽出
+  summaryExtract ;              #要約の抽出
+  getCategory "NEWSPACKDB2" "NPCATEGORY" ;
+  getCategory "GOITAIKEI2" "GTCATEGORY" ;
+  getCategory "wnjpn.db" "WNCATEGORY" ;
+  printOut ;
+}
+#if [ 0 = $# ]; then usage; exit 1; fi
+#((0==$#))&&{ usage; exit 1; }
 # : をつけると値を受け取るという意味
-#DEBUG="FALSE" ;
-DEBUG="TRUE" ;
+DEBUG="FALSE" ;
+#DEBUG="TRUE" ;
 LIST_MODEL="FALSE" ;
 while getopts dmf:c:hv option; do
     case "$option" in
@@ -237,27 +258,7 @@ while getopts dmf:c:hv option; do
 done
 shift $(($OPTIND - 1))
 selectCalc "$calc_imp";
-#
-#
-function Main(){
-  if [ "$inputFile" == "" ] ; then
-    # ./MAIN.SH < in の場合
-    parse ;
-  else
-    # -f in に対応
-    parse<"$inputFile" ;        #パラメータ処理
-  fi
-  termExtract ;                 #重要語解析
-  mecabExtract ;                #形態素解析(人名地名組織名の抽出）
-  cabochaExtract ;              #構文解析
-  makeGraph ;                   #グラフの生成 
-  opinionExtract ;              #評価表現の抽出
-  summaryExtract ;              #要約の抽出
-  getCategory "NEWSPACKDB2" "NPCATEGORY" ;
-  getCategory "GOITAIKEI2" "GTCATEGORY" ;
-  getCategory "wnjpn.db" "WNCATEGORY" ;
-  printOut ;
-}
-#Main ;
+Main ;
+exit;
 
 

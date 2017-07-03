@@ -1,0 +1,222 @@
+#!/bin/bash
+
+# 全体的に言える事ですが、port やbrew でインストールした
+# アプリは後からアンインストールなどしても、設定ファイルが
+# ばらばらと残ってしまい、残骸整理が大変です。
+
+
+if [ -z $(which brew)]; then
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
+else
+  brew --help;
+fi
+
+brew install gawk ;
+brew install gsed ;
+brew install sary ;
+
+sudo port install glib2 ;
+sudo port install gtk2;
+sudo port install pkgconfig;
+sudo port install gcc6;
+brew install libtool ;
+
+brew tap uetchy/nlp #tapを追加
+brew install mecab # 入力がUTF-8になります。
+brew install mecab-ipadic
+brew install crf++
+brew install cabocha
+brew install darats 
+brew istall tinysvm
+brew install yamcha 
+brew install juman 
+brew install mecab-jumandic
+brew install knp 
+brew install jdepp
+
+#awk
+if [ -z $(which gawk) ]; then
+  sudo port install gawk ; #mac
+else
+  gawk --version | grep -i "GNU Awk";  
+fi
+#sed
+if [ -z $(which gsed) ]; then
+  sudo port install gsed ; #mac
+else
+  gsed --version  | grep -i "gsed (GNU sed"
+fi
+# sary
+if [ -z $(which sary) ]; then
+  brew install sary;
+else
+  which sary;
+fi
+#libtool
+if [ -z $(which libtool) ]; then
+  wget ftp://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz . ;
+  tar zxvf libtool-2.4.2.tar.gz;
+  cd libtool-2.4.2;
+  make clean ;
+  ./configure --prefix=$HOME/local;
+  make;
+  make install;
+  # brew install libtool ;
+else
+  which libtool;
+fi
+#mecab 
+if [ -z $(which mecab) ]; then
+  wget -O mecab-0.996.tar.gz "https://drive.google.com/uc?export=download&id=0B4y35FiV1wh7cENtOXlicTFaRUE";
+  tar zxfv mecab-0.996.tar.gz;
+  cd mecab-0.996;
+  make clean;
+  ./configure;
+  make;
+  make install;
+  #mecab ipa dic
+  wget -O mecab-ipadic-2.7.0-20070801.tar.gz "https://drive.google.com/uc?export=download&id=0B4y35FiV1wh7MWVlSDBCSXZMTXM";
+  tar zxfv mecab-ipadic-2.7.0-20070801.tar.gz;
+  cd mecab-ipadic-2.7.0-20070801;
+  #./configure --with-charset=utf8;
+  ./configure ;
+  make;
+  sudo make install;
+  #未確認だがUTF-8入力がでふぉでよければ
+  # brew install mecab
+  # brew install mecab-ipadic
+else
+  which mecab ;
+fi 
+#CRF++
+if [ -z $(which crf_test) ]; then
+  wget 'https://drive.google.com/uc?export=download&id=0B4y35FiV1wh7QVR6VXJ5dWExSTQ' -O CRF++-0.58.tar.gz;
+  tar zxvf CRF++-0.58.tar.gz;
+  cd CRF++-0.58;
+  make clean ;
+  ./configure;
+  make;
+  sudo make install;
+  sudo ln -s /usr/local/bin/crf_learn /usr/bin/crf_learn ;
+  sudo ln -s /usr/local/bin/crf_test /usr/bin/crf_test ;
+  # brewk install crf++
+else
+  which crf_test;
+  which crf_learn;
+fi
+#cabocha
+if [ -z $(which cabocha) ]; then
+  bzip2 -d cabocha-0.69.tar.bz2
+  tar -xf cabocha-0.69.tar
+  cd cabocha-0.69
+  make clean ;
+  LIBS=-liconv ./configure --with-posset=IPA
+  #./configure --with-mecab- config='which mecab-config' --with-charset=UTF8
+  make;
+  sudo make install;
+  sudo ln -s /usr/local/bin/cabocha /usr/bin/cabocha;
+  echo "mecabrc=/usr/local/etc/mecabrc" >> ~/.cabocharc
+  # brew tap uetchy/nlp
+  # brew install cabocha ;
+else
+  which cabocha;
+fi
+#darts
+if [ -f /usr/local/include/darts.h ]; then
+  ls /usr/local/include/darts.h ;
+else
+  wget http://chasen.org/~taku/software/darts/src/darts-0.3.tar.gz
+  tar xzvf darts-0.3.tar.gz
+  cd darts-0.3
+  make clean ;
+  ./configure ;
+  make ;
+  make install ;
+  # brew install darts
+fi
+#tinySVN
+#mac の場合のpatch 
+#http://naoyat.hatenablog.jp/entry/2012/01/25/202231
+if [ -z $(which svm_learn) ]; then
+  wget http://chasen.org/~taku/software/TinySVM/src/TinySVM-0.09.tar.gz
+  tar xzvf TinySVM-0.09.tar.gz
+  cd TinySVM-0.09
+  patch -p1 < ../TinySVM-0.09.naoyat-macosx.patch
+  ./configure
+  make
+  make check
+  make install
+  # brew install tinysvm ;
+else
+  which svm_learn ;
+fi
+#YamCha
+if [ -z $(which yamcha) ]; then
+  wget http://chasen.org/~taku/software/yamcha/src/yamcha-0.33.tar.gz
+  tar xzvf yamcha-0.33.tar.gz
+  cd yamcha-0.33
+  ./configure
+  make
+  make check
+  make install
+  # brew install yamcha
+else
+  which yamcha ;
+fi
+#juman
+if [ -z $(which juman) ]; then
+  wget http://nlp.ist.i.kyoto-u.ac.jp/nl-resource/juman/juman-7.01.tar.bz2
+  tar jxvf juman-7.01.tar.bz2
+  cd juman-7.01
+  make clean ;
+  ./configure
+  make
+  sudo make install
+  sudo ln -s /usr/local/bin/juman /usr/bin/juman;
+  #brew insall juman 
+else
+  which juman ;
+fi
+#KNP
+if [ -z $(which knp) ]; then
+  wget "http://nlp.ist.i.kyoto-u.ac.jp/DLcounter/lime.cgi?down=http://nlp.ist.i.kyoto-u.ac.jp/nl-resource/knp/knp-4.17.tar.bz2&name=knp-4.17.tar.bz2"
+  tar jxvf knp-4.17.tar.bz2
+  cd knp-4.17
+  make clean ;
+  ./configure
+  make
+  sudo make install
+  sudo ln -s 
+  # 未確認だが
+  # brew だと CRF++もjumanもKNPと同時にインストールされるらしい
+  # brew tap uetchy/nlp
+  # brew install knp
+  # brew install knp --with-crf++
+else
+  which knp;
+fi
+#mecab-jumandic
+if [ ! -d "/usr/local/lib/mecab/dic/jumandic/" ]; then
+  cd mecab-jumandic-7.0-20130310;
+  make clean ;
+  ./configure ;
+  make ;
+  make install ;
+  # brew install mecab-jumandic
+else
+  ls -la  /usr/local/lib/mecab/dic/jumandic/ ;
+fi
+#JDepP
+if [ -z $(which jdepp) ]; then
+  wget http://www.tkl.iis.u-tokyo.ac.jp/~ynaga/jdepp/jdepp-latest.tar.gz ;
+  tar zxvf jdepp-latest.tar.gz ;
+  cd jdepp-2015-10-05 ;
+  ./configure --with-mecab-dict=IPA --prefix=/usr/local ;
+  make clean ;
+  make model ;
+  make install;
+  #brew install jdepp
+else
+  which jDepP ; 
+fi
+

@@ -221,9 +221,9 @@ function Main(){
   makeGraph ;                   #グラフの生成 
   opinionExtract ;              #評価表現の抽出
   summaryExtract ;              #要約の抽出
-  getCategory "NEWSPACKDB2" "NPCATEGORY" ;
-  getCategory "GOITAIKEI2" "GTCATEGORY" ;
-  getCategory "wnjpn.db" "WNCATEGORY" ;
+#  getCategory "NEWSPACKDB2" "NPCATEGORY" ;
+#  getCategory "GOITAIKEI2" "GTCATEGORY" ;
+#  getCategory "wnjpn.db" "WNCATEGORY" ;
   printOut ;
 }
 #if [ 0 = $# ]; then usage; exit 1; fi

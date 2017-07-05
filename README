@@ -395,47 +395,7 @@
 # echo $C_INCLUDE_PATH
 #
 ########
-# jumanのインストール
-#
-# tar zxvf juman-6.01.tar.gz ;
-# cd juman-6.01 ;
-# ./configure ;
-# make clean ;
-# make ;
-# make install ;
-# ln -s /usr/local/bin/juman /usr/bin/juman ;
-# ldconfig  ;
-# 
-########
-# tinycdbのインストール
-#
-# tar -zxvf tinycdb-0.78.tar.gz ;
-# cd tinycdb-0.78
-# make clean ;
-# make
-# make install ;
-# ln -s /usr/local/bin/cdb /usr/bin/cdb ;
-# ldconfig  ;
-#
-########
-# KNPのインストール
-#
-#tar -zxvf knp-3.01.tar.gz ;
-#cd knp-3.01
-#./configure ;
-#make clean ;
-#make ;
-#make install ;
-#ln -s /usr/local/bin/knp /usr/bin/knp ;
-#ldconfig  ;
-#
-#make 実行時  下記エラーの場合
-#  /bin/sh: line 0: ulimit: stack size: cannot modify limit: Invalid argument
-# vim dict/ebcf/Makefile
-# SsをSへ書き換える
-#
-########
-# 意見（評価表現）抽出ツールのインストール
+# 評価表現抽出ツールのインストール
 #
 # #tar -zxvf extractopinion-1.2.tar.gz ;
 # # ra カレントディレクトリで
@@ -452,16 +412,6 @@
 # #Apacheで動作させるために必要(whichにcrf_testが通っていなければ)
 # ln -s /usr/local/bin/crf_test /usr/bin/crf_test ;
 # ./extract.sh in8 ;
-#
-#
-########
-# macab-jumandicのインストール
-#
-# $ cd gzArchive 
-# $ cd mecab-jumandic-5.1-20070304
-# $ ./configure 
-# $ make 
-# $ sudo make install 
 #
 ########
 # JdepP
